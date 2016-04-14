@@ -185,13 +185,13 @@ validate (Syntax.Raml types) = do
                    <*> inheritDiscriminator t
       where
         strengthenTypeName :: String -> Either String (Maybe ObjectName)
-        strengthenTypeName s | isUnit   t = return $ Nothing
-                             | isObject t = return $ Just $ ObjectName s
-                             | isString t = fail "objects shouldn't inherit from strings"
-                             | isUnion  t = fail "objects shouldn't inherit from unions"
+        strengthenTypeName s | isUnit   t' = return $ Nothing
+                             | isObject t' = return $ Just $ ObjectName s
+                             | isString t' = fail "objects shouldn't inherit from strings"
+                             | isUnion  t' = fail "objects shouldn't inherit from unions"
                              | otherwise  = error "unknown type" -- should have been caught earlier
           where
-            t = types ! s
+            t' = types ! s
     objectDesc t@(Syntax.TypeDesc (Syntax.PrimitiveType PrimitiveObject) _ _ _ _) =
         ObjectDesc <$> pure Nothing
                    <*> traverse propertyDesc (Syntax.properties t)
