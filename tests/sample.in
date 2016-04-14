@@ -1,0 +1,20 @@
+types:
+  Alternative:
+    type: object
+    discriminator: constructor
+  
+  StringType: Alternative
+  NumberType: Alternative
+  DateType:
+    type: Alternative
+    properties:
+      dateFormat:
+        type: string
+        pattern: "[YMD]+[-\\.][YMD]+[-\\.\\/][YMD]+"
+  BooleanType: Alternative
+  DataType: StringType | NumberType | DateType | BooleanType
+  
+  Field:
+    properties:
+      name:
+      dataType: DataType
