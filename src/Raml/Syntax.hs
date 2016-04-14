@@ -2,15 +2,12 @@
 module Raml.Syntax where
 
 import Control.Applicative
-import qualified Data.ByteString.Char8 as ByteString
-import           Data.ByteString.Char8 (ByteString)
 import qualified Data.Text as Text
 import           Data.Text (Text)
 import qualified Data.Yaml as Yaml
-import           Data.Yaml (Value(..), Parser(..), FromJSON(..), ToJSON(..), (.:), (.:?), (.!=))
+import           Data.Yaml (Value(..), Parser, FromJSON(..), (.:), (.:?), (.!=))
 import qualified Data.Map.Strict as Map
 import           Data.Map.Strict (Map)
-import Debug.Trace
 import Extra
 import Text.Printf
 
@@ -67,7 +64,7 @@ instance FromJSON TypeDesc where
                              <*> o .:? "discriminator" 
                              <*> o .:? "enum" .!= []
                              <*> o .:? "pattern"
-      parseTypeDesc v = fail $ printf "expected type definition, got %s" (show v)
+      parseTypeDesc v' = fail $ printf "expected type definition, got %s" (show v')
       
       parseObjectDesc :: Value -> Parser TypeDesc
       parseObjectDesc (Object o) = TypeDesc
@@ -76,15 +73,15 @@ instance FromJSON TypeDesc where
                                <*> o .:? "discriminator" 
                                <*> invalidField o "enum" []
                                <*> invalidField o "pattern" Nothing
-      parseObjectDesc v = fail $ printf "expected type definition, got %s" (show v)
+      parseObjectDesc v' = fail $ printf "expected type definition, got %s" (show v')
       
       parseTypeExpr :: Value -> Parser TypeDesc
-      parseTypeExpr v = TypeDesc
-                    <$> parseJSON v
-                    <*> pure Map.empty
-                    <*> pure Nothing
-                    <*> pure []
-                    <*> pure Nothing
+      parseTypeExpr v' = TypeDesc
+                     <$> parseJSON v'
+                     <*> pure Map.empty
+                     <*> pure Nothing
+                     <*> pure []
+                     <*> pure Nothing
 
 -- |
 -- >>> Yaml.decode (ByteString.pack "type:") :: Maybe (Map String TypeExpr)
@@ -129,14 +126,14 @@ instance FromJSON PropertyDesc where
             <|> parsePropertyDesc v
     where
       parseTypeDesc :: Value -> Parser PropertyDesc
-      parseTypeDesc v = PropertyDesc
-                    <$> pure True
-                    <*> parseJSON v
-                    <*> pure Nothing
+      parseTypeDesc v' = PropertyDesc
+                     <$> pure True
+                     <*> parseJSON v'
+                     <*> pure Nothing
       
       parsePropertyDesc :: Value -> Parser PropertyDesc
       parsePropertyDesc (Object o) = PropertyDesc
                                  <$> o .:? "required" .!= True
                                  <*> o .:  "type"
                                  <*> o .:? "default" .!= Nothing
-      parsePropertyDesc v = fail $ printf "expected property description, got %s" (show v)
+      parsePropertyDesc v' = fail $ printf "expected property description, got %s" (show v')
