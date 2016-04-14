@@ -154,7 +154,7 @@ validate (Syntax.Raml types) = do
     isUnion _ = False
     
     [unitTypeDescs, objectTypeDescs, stringTypeDescs, unionTypeDescs, unknownTypeDescs] =
-      distributeMaps [isUnit, isObject, isString, isUnion] types
+        distributeMaps [isUnit, isObject, isString, isUnion] types
     
     unitTypes'   = strengthen UnitName   unitDesc   unitTypeDescs
     objectTypes' = strengthen ObjectName objectDesc objectTypeDescs
@@ -163,34 +163,34 @@ validate (Syntax.Raml types) = do
     
     unitDesc :: Syntax.TypeDesc -> Either String UnitDesc
     unitDesc (Syntax.stringPattern -> Just _) =
-      fail "a unit type shouldn't have a pattern"
+        fail "a unit type shouldn't have a pattern"
     unitDesc (null . Syntax.enum -> False) =
-      fail "a unit type shouldn't have enum values"
+        fail "a unit type shouldn't have enum values"
     unitDesc (null . Syntax.properties -> False) =
-      fail "a unit type shouldn't have properties"
+        fail "a unit type shouldn't have properties"
     unitDesc t = do
-      d <- inheritDiscriminator t
-      case d of
-        Just d' -> return $ UnitDesc d'
-        Nothing -> fail "a unit type should have a discriminator"
+        d <- inheritDiscriminator t
+        case d of
+          Just d' -> return $ UnitDesc d'
+          Nothing -> fail "a unit type should have a discriminator"
     
     objectDesc :: Syntax.TypeDesc -> Either String ObjectDesc
     objectDesc (Syntax.stringPattern -> Just _) =
-      fail "an object type shouldn't have a pattern"
+        fail "an object type shouldn't have a pattern"
     objectDesc (null . Syntax.enum -> False) =
-      fail "an object type shouldn't have enum values"
+        fail "an object type shouldn't have enum values"
     objectDesc t@(Syntax.TypeDesc (Syntax.NamedType typeName) _ _ _ _) =
-      ObjectDesc <$> pure (Just (ObjectName typeName))
-                 <*> traverse propertyDesc (Syntax.properties t)
-                 <*> inheritDiscriminator t
+        ObjectDesc <$> pure (Just (ObjectName typeName))
+                   <*> traverse propertyDesc (Syntax.properties t)
+                   <*> inheritDiscriminator t
     objectDesc t@(Syntax.TypeDesc (Syntax.PrimitiveType PrimitiveObject) _ _ _ _) =
-      ObjectDesc <$> pure Nothing
-                 <*> traverse propertyDesc (Syntax.properties t)
-                 <*> inheritDiscriminator t
+        ObjectDesc <$> pure Nothing
+                   <*> traverse propertyDesc (Syntax.properties t)
+                   <*> inheritDiscriminator t
     objectDesc (Syntax.TypeDesc (Syntax.PrimitiveType PrimitiveString) _ _ _ _) =
-      fail "an object type shouldn't inherit from string"
+        fail "an object type shouldn't inherit from string"
     objectDesc (Syntax.TypeDesc (Syntax.Union _) _ _ _ _) =
-      fail "an object type shouldn't inherit from union"
+        fail "an object type shouldn't inherit from union"
     
     propertyDesc :: Syntax.PropertyDesc -> Either String PropertyDesc
     propertyDesc p = PropertyDesc
@@ -222,17 +222,17 @@ validate (Syntax.Raml types) = do
     
     unionDesc :: Syntax.TypeDesc -> Either String UnionDesc
     unionDesc (Syntax.stringPattern -> Just _) =
-      fail "a union type shouldn't have a pattern"
+        fail "a union type shouldn't have a pattern"
     unionDesc (null . Syntax.enum -> False) =
-      fail "a union type shouldn't have enum values"
+        fail "a union type shouldn't have enum values"
     unionDesc (null . Syntax.discriminator -> False) =
-      fail "a union type shouldn't have a discriminator"
+        fail "a union type shouldn't have a discriminator"
     unionDesc (null . Syntax.properties -> False) =
-      fail "a union type shouldn't have properties"
+        fail "a union type shouldn't have properties"
     unionDesc (Syntax.TypeDesc (Syntax.PrimitiveType _) _ _ _ _) =
-      fail "a union type shouldn't have a primitive type"
+        fail "a union type shouldn't have a primitive type"
     unionDesc (Syntax.TypeDesc (Syntax.NamedType _) _ _ _ _) =
-      fail "a union type shouldn't have a named parent"
+        fail "a union type shouldn't have a named parent"
     unionDesc (Syntax.TypeDesc (Syntax.Union ts) _ _ _ _) =
         UnionDesc <$> traverse expectNamedType ts
       where
