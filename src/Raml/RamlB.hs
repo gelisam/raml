@@ -5,9 +5,9 @@ import Control.Applicative
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Either
 import Data.Functor.Identity
-import           Data.Yaml (Value)
 import qualified Data.Map.Strict as Map
 import           Data.Map.Strict (Map)
+import           Data.Yaml (Value)
 import Text.Printf
 
 import Raml.RamlA
@@ -62,11 +62,6 @@ runRamlBT filePath ramlBT = do
       Left err -> fail (show err)
       Right x -> return x
 
-
-typesB :: Monad m => RamlBT m (Map String Type)
-typesB = do
-    r <- typesA
-    traverse typeDescB r
 
 -- |
 -- >>> runRamlBT "tests/sample.in" namedTypesB
