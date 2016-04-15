@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 clear
 DIR="$(dirname "$0")"
 cabal build
