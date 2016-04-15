@@ -15,7 +15,7 @@ import Text.Printf
 -- >>> import qualified Data.Yaml as Yaml
 
 
-data Raml = Raml
+data RamlFile = RamlFile
   { types :: Map String TypeDesc
   } deriving (Show, Eq)
 
@@ -45,8 +45,8 @@ data PropertyDesc = PropertyDesc
   } deriving (Show, Eq)
 
 
-instance FromJSON Raml where
-  parseJSON (Object o) = Raml
+instance FromJSON RamlFile where
+  parseJSON (Object o) = RamlFile
                      <$> o .: "types"
   parseJSON v = fail $ printf "expected RAML file, got %s" (show v)
 

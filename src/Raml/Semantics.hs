@@ -1,4 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables, TupleSections, ViewPatterns #-}
+{-# LANGUAGE RecordWildCards, ScopedTypeVariables, TupleSections, ViewPatterns #-}
 module Raml.Semantics where
 
 import Control.Applicative
@@ -10,7 +10,7 @@ import           Data.Map.Strict (Map, (!))
 import Text.Printf
 
 import qualified Raml.Syntax as Syntax
-import           Raml.Syntax (PrimitiveType(..))
+import           Raml.Syntax (RamlFile(..), PrimitiveType(..))
 
 -- $setup
 -- >>> import qualified Data.Yaml as Yaml
@@ -106,8 +106,8 @@ strengthen mapKey mapValue = fmap Map.fromList
 
 -- |
 -- >>> validate <$> Data.Maybe.fromJust <$> Data.Yaml.decodeFile "tests/sample.in"
-validate :: Syntax.Raml -> Either String Raml
-validate (Syntax.Raml types) = do
+validate :: RamlFile -> Either String Raml
+validate (RamlFile {..}) = do
     when (not (null unknownTypeDescs)) $ do
       let names = map fst $ Map.toList unknownTypeDescs
       fail $ printf "unrepresentable types: %s" (show names)
