@@ -18,6 +18,7 @@ library
   exposed-modules:     Raml
                      , Raml.RamlA
                      , Raml.RamlB
+                     , Raml.RamlC
                      , Raml.Semantics
                      , Raml.Syntax
   -- other-modules:       
