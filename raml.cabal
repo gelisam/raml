@@ -17,6 +17,7 @@ cabal-version:       >=1.10
 library
   exposed-modules:     Raml
                      , Raml.RamlA
+                     , Raml.RamlB
                      , Raml.Semantics
                      , Raml.Syntax
   -- other-modules:       
@@ -25,8 +26,10 @@ library
                      , aeson
                      , bytestring
                      , containers
+                     , either
                      , extra
                      , text
+                     , transformers
                      , vector
                      , yaml
   hs-source-dirs:      src
