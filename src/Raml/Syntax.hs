@@ -45,11 +45,6 @@ data PropertyDesc = PropertyDesc
   } deriving (Show, Eq)
 
 
-invalidField :: forall a. FromJSON a => Yaml.Object -> Text -> a -> Parser a
-invalidField o field x = case Yaml.parseMaybe (o .:) field :: Maybe a of
-    Nothing -> return x
-    Just _  -> fail $ printf "field %s makes no sense here" (show field)
-
 instance FromJSON Raml where
   parseJSON (Object o) = Raml
                      <$> o .: "types"
@@ -74,8 +69,8 @@ instance FromJSON TypeDesc where
                                <$> pure (PrimitiveType PrimitiveObject)
                                <*> o .: "properties"
                                <*> o .:? "discriminator" 
-                               <*> invalidField o "enum" []
-                               <*> invalidField o "pattern" Nothing
+                               <*> o .:? "enum" .!= []
+                               <*> o .:? "pattern"
       parseObjectDesc v' = fail $ printf "expected type definition, got %s" (show v')
       
       parseTypeExpr :: Value -> Parser TypeDesc
