@@ -4,7 +4,6 @@ module Raml.Syntax where
 import Control.Applicative
 import qualified Data.Text as Text
 import           Data.Text (Text)
-import qualified Data.Yaml as Yaml
 import           Data.Yaml (Value(..), Parser, FromJSON(..), (.:), (.:?), (.!=))
 import qualified Data.Map.Strict as Map
 import           Data.Map.Strict (Map)
@@ -13,6 +12,7 @@ import Text.Printf
 
 -- $setup
 -- >>> import qualified Data.ByteString.Char8 as ByteString
+-- >>> import qualified Data.Yaml as Yaml
 
 
 data Raml = Raml
