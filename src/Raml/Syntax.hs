@@ -11,6 +11,9 @@ import           Data.Map.Strict (Map)
 import Extra
 import Text.Printf
 
+-- $setup
+-- >>> import qualified Data.ByteString.Char8 as ByteString
+
 
 data Raml = Raml
   { types :: Map String TypeDesc
