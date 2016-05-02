@@ -5,6 +5,8 @@ import Control.Applicative
 import qualified Data.Aeson as Json
 import qualified Data.List as List
 import           Data.Map (Map)
+import Data.Maybe
+import           Data.Text (Text)
 import qualified Data.Text as Text
 import           Data.Yaml (FromJSON(..), ToJSON(..), (.:), (.:?), (.=))
 import qualified Data.Yaml as Yaml
@@ -43,6 +45,16 @@ newtype ParseTree = ParseTree
 
 pattern YamlString s <- Yaml.String (Text.unpack -> s) where
   YamlString s = Yaml.String (Text.pack s)
+
+-- Yaml.object ["foo" .= Nothing] is {"foo": null},
+-- object ["foo" .=? Nothing] is {}.
+object :: [Maybe (Text, Yaml.Value)] -> Yaml.Value
+object = Yaml.object . catMaybes
+
+(.=?) :: ToJSON a => Text -> Maybe a -> Maybe (Text, Yaml.Value)
+key .=? value = do
+    v <- value
+    return (key, toJSON v)
 
 
 instance (FromJSON a, FromJSON b) => FromJSON (OrElse a b) where
@@ -83,11 +95,11 @@ instance FromJSON TypeProps where
   parseJSON v = fail $ printf "expected type properties, got %s" (show v)
 
 instance ToJSON TypeProps where
-  toJSON t = Yaml.object [ "type" .= type_ t
-                         , "properties" .= properties t
-                         , "discriminator" .= discriminator t
-                         , "pattern" .= stringPattern t
-                         ]
+  toJSON t = object [ "type" .=? type_ t
+                    , "properties" .=? properties t
+                    , "discriminator" .=? discriminator t
+                    , "pattern" .=? stringPattern t
+                    ]
 
 instance FromJSON ParseTree where
   parseJSON (Yaml.Object o) = ParseTree
@@ -109,28 +121,19 @@ readYaml file = do
 -- |
 -- >>> import qualified Data.ByteString.Char8 as B
 -- >>> r <- parse <$> readYaml "tests/sample.in"
--- >>> B.putStrLn $ Yaml.encode r
+-- >>> B.putStr $ Yaml.encode r
 -- types:
 --   BooleanType: Alternative
 --   DateType:
---     pattern: null
---     discriminator: null
 --     type: Alternative
 --     properties:
 --       dateFormat:
 --         pattern: ! '[YMD]+[-\.][YMD]+[-\.\/][YMD]+'
---         discriminator: null
 --         type: string
---         properties: null
 --   Alternative:
---     pattern: null
 --     discriminator: constructor
 --     type: object
---     properties: null
 --   Field:
---     pattern: null
---     discriminator: null
---     type: null
 --     properties:
 --       name: null
 --       dataType: DataType
