@@ -15,11 +15,7 @@ build-type:          Simple
 cabal-version:       >=1.10
 
 library
-  exposed-modules:     Raml.RamlA
-                     , Raml.RamlB
-                     , Raml.RamlC
-                     , Raml.RamlD
-                     , Raml.Syntax
+  exposed-modules:     
   -- other-modules:       
   -- other-extensions:    
   build-depends:       base >=4.8 && <4.9
