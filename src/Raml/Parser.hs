@@ -76,17 +76,9 @@ instance ToJSON ParseTree where
                          ]
 
 
-readYaml :: FilePath -> IO Yaml.Value
-readYaml file = do
-    r <- Yaml.decodeFileEither file
-    case r of
-      Left err -> error (Yaml.prettyPrintParseException err)
-      Right x -> return x
-
 -- |
--- >>> import qualified Data.ByteString.Char8 as B
 -- >>> r <- parse <$> readYaml "tests/sample.in"
--- >>> B.putStr $ Yaml.encode r
+-- >>> printAsYaml r
 -- types:
 --   BooleanType: Alternative
 --   DateType:

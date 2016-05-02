@@ -3,6 +3,7 @@ module Raml.Common where
 
 import Control.Applicative
 import Data.Maybe
+import qualified Data.ByteString.Char8 as ByteString
 import           Data.Text (Text)
 import qualified Data.Text as Text
 import           Data.Yaml (FromJSON(..), ToJSON(..))
@@ -42,3 +43,14 @@ instance (FromJSON a, FromJSON b) => FromJSON (OrElse a b) where
 instance (ToJSON a, ToJSON b) => ToJSON (OrElse a b) where
   toJSON (OrElse (Left  x)) = toJSON x
   toJSON (OrElse (Right y)) = toJSON y
+
+
+readYaml :: FilePath -> IO Yaml.Value
+readYaml file = do
+    r <- Yaml.decodeFileEither file
+    case r of
+      Left err -> error (Yaml.prettyPrintParseException err)
+      Right x -> return x
+
+printAsYaml :: ToJSON a => a -> IO ()
+printAsYaml = ByteString.putStr . Yaml.encode
