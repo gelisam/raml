@@ -17,8 +17,11 @@ data TypeProps = TypeProps
   , stringPattern :: Maybe Regexp
   } deriving (Show, Eq)
 
+
+type SymbolTable = Map TypeName TypeProps
+
 newtype NormalizedTree = NormalizedTree
-  { unNormalizedTree :: Map TypeName TypeProps
+  { unNormalizedTree :: SymbolTable
   } deriving (Show, Eq)
 
 
@@ -66,7 +69,8 @@ normalizeTypeProps p = TypeProps
       Just _ -> Object
 
 -- |
--- >>> r <- normalize <$> Parser.parse <$> readYaml "tests/sample.in"
+-- >>> import Raml.Parser
+-- >>> r <- normalize <$> parse <$> readYaml "tests/sample.in"
 -- >>> printAsYaml r
 -- types:
 --   BooleanType:

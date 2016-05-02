@@ -26,8 +26,11 @@ data TypeProps = TypeProps
   , stringPattern :: Maybe Regexp
   } deriving (Show, Eq)
 
+
+type SymbolTable = Map TypeName (OrElse TypeExpr TypeProps)
+
 newtype ParseTree = ParseTree
-  { unParseTree :: Map TypeName (OrElse TypeExpr TypeProps)
+  { unParseTree :: SymbolTable
   } deriving (Show, Eq)
 
 
