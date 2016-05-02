@@ -1,8 +1,10 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Raml.Classifier where
 
 import Control.Applicative
 import           Data.Map (Map, (!))
 import qualified Data.Map as Map
+import           Data.Yaml (ToJSON(..))
 
 import Raml.Common
 import           Raml.Normalizer (NormalizedTree(..))
@@ -57,6 +59,45 @@ type SymbolTable = Map TypeName TypeProps
 newtype ClassifiedTree = ClassifiedTree
   { unClassifiedTree :: Map TypeName TypeProps
   } deriving (Show, Eq)
+
+
+instance ToJSON ObjectType where
+  toJSON Object = YamlString "object"
+  toJSON (ObjectRef x) = YamlString x
+
+instance ToJSON StringType where
+  toJSON String = YamlString "string"
+  toJSON (StringRef x) = YamlString x
+
+instance ToJSON UnionBranch where
+  toJSON (ObjectBranch x) = toJSON x
+  toJSON (StringBranch x) = toJSON x
+
+instance ToJSON Type where
+  toJSON (ObjectType Object) = YamlString "object"
+  toJSON (ObjectType (ObjectRef x)) = YamlString (x ++ " :: object")
+  toJSON (StringType String) = YamlString "string"
+  toJSON (StringType (StringRef x)) = YamlString (x ++ " :: string")
+  toJSON (UnionType xs) = toJSON xs
+
+instance ToJSON ObjectProps where
+  toJSON t = object [ "type" .=! parentObjectType t
+                    , "properties" .=! properties t
+                    , "discriminator" .=? objectDiscriminator t
+                    ]
+
+instance ToJSON StringProps where
+  toJSON t = object [ "type" .=! parentStringType t
+                    , "pattern" .=? stringPattern t
+                    ]
+
+instance ToJSON TypeProps where
+  toJSON (ObjectTypeProps x) = toJSON x
+  toJSON (StringTypeProps x) = toJSON x
+  toJSON (UnionTypeProps x) = toJSON x
+
+instance ToJSON ClassifiedTree where
+  toJSON (ClassifiedTree x) = object [ "types" .=! x ]
 
 
 classifyUnionBranch :: SymbolTable -> Normalizer.TypeExpr -> UnionBranch
@@ -209,8 +250,46 @@ classifyTypeProps symbolTable newTypeProps = mergedTypeProps
 -- >>> import Raml.Parser
 -- >>> import Raml.Normalizer
 -- >>> r <- classify <$> normalize <$> parse <$> readYaml "tests/sample.in"
--- >>> r
--- ...
+-- >>> printAsYaml r
+-- types:
+--   BooleanType:
+--     discriminator: constructor
+--     type: Alternative
+--     properties: {}
+--   DateType:
+--     discriminator: constructor
+--     type: Alternative
+--     properties:
+--       dateFormat:
+--         pattern: ! '[YMD]+[-\.][YMD]+[-\.\/][YMD]+'
+--         type: string
+--   Alternative:
+--     discriminator: constructor
+--     type: object
+--     properties: {}
+--   Field:
+--     type: object
+--     properties:
+--       name:
+--         type: string
+--       dataType:
+--       - StringType
+--       - NumberType
+--       - DateType
+--       - BooleanType
+--   NumberType:
+--     discriminator: constructor
+--     type: Alternative
+--     properties: {}
+--   StringType:
+--     discriminator: constructor
+--     type: Alternative
+--     properties: {}
+--   DataType:
+--   - StringType
+--   - NumberType
+--   - DateType
+--   - BooleanType
 classify :: NormalizedTree -> ClassifiedTree
 classify = ClassifiedTree . go . unNormalizedTree
   where
