@@ -15,7 +15,11 @@ build-type:          Simple
 cabal-version:       >=1.10
 
 library
-  exposed-modules:     
+  exposed-modules:     Raml.Parser
+                     , Raml.Normalizer
+                     , Raml.Classifier
+                     , Raml.Analyzer
+                     , Raml.Generator
   -- other-modules:       
   -- other-extensions:    
   build-depends:       base >=4.8 && <4.9
