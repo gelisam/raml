@@ -3,9 +3,10 @@ module Raml.Parser where
 
 import Control.Applicative
 import qualified Data.Aeson as Json
-import Data.Map as Map
-import Data.Text as Text
-import           Data.Yaml (FromJSON(..), (.:), (.:?))
+import qualified Data.List as List
+import           Data.Map (Map)
+import qualified Data.Text as Text
+import           Data.Yaml (FromJSON(..), ToJSON(..), (.:), (.:?), (.=))
 import qualified Data.Yaml as Yaml
 import Extra
 import Text.Printf
@@ -49,6 +50,10 @@ instance (FromJSON a, FromJSON b) => FromJSON (OrElse a b) where
                          <|> Right <$> parseJSON v
                            )
 
+instance (ToJSON a, ToJSON b) => ToJSON (OrElse a b) where
+  toJSON (OrElse (Left  x)) = toJSON x
+  toJSON (OrElse (Right y)) = toJSON y
+
 instance FromJSON TypeExpr where
   parseJSON (YamlString s) = case wordsBy (`elem` [' ', '|']) s of
       [] -> fail $ printf "expected type expression, got %s" (show (YamlString s))
@@ -58,6 +63,17 @@ instance FromJSON TypeExpr where
       xs -> Union <$> mapM (parseJSON . YamlString) xs
   parseJSON v = fail $ printf "expected type expression, got %s" (show v)
 
+instance ToJSON TypeExpr where
+  toJSON = YamlString . toString
+    where
+      toString :: TypeExpr -> String
+      toString Object = "object"
+      toString String = "string"
+      toString (Ref x) = x
+      toString (Union xs) = printf "(%s)"
+                          $ List.intercalate " | "
+                          $ map toString xs
+
 instance FromJSON TypeProps where
   parseJSON (Yaml.Object o) = TypeProps
                           <$> o .:? "type"
@@ -66,10 +82,21 @@ instance FromJSON TypeProps where
                           <*> o .:? "pattern"
   parseJSON v = fail $ printf "expected type properties, got %s" (show v)
 
+instance ToJSON TypeProps where
+  toJSON t = Yaml.object [ "type" .= type_ t
+                         , "properties" .= properties t
+                         , "discriminator" .= discriminator t
+                         , "pattern" .= stringPattern t
+                         ]
+
 instance FromJSON ParseTree where
   parseJSON (Yaml.Object o) = ParseTree
                           <$> o .: "types"
   parseJSON v = fail $ printf "expected type list, got %s" (show v)
+
+instance ToJSON ParseTree where
+  toJSON t = Yaml.object [ "types" .= unParseTree t
+                         ]
 
 
 readYaml :: FilePath -> IO Yaml.Value
@@ -80,8 +107,36 @@ readYaml file = do
       Right x -> return x
 
 -- |
--- >>> parse <$> readYaml "tests/sample.in"
--- ...
+-- >>> import qualified Data.ByteString.Char8 as B
+-- >>> r <- parse <$> readYaml "tests/sample.in"
+-- >>> B.putStrLn $ Yaml.encode r
+-- types:
+--   BooleanType: Alternative
+--   DateType:
+--     pattern: null
+--     discriminator: null
+--     type: Alternative
+--     properties:
+--       dateFormat:
+--         pattern: ! '[YMD]+[-\.][YMD]+[-\.\/][YMD]+'
+--         discriminator: null
+--         type: string
+--         properties: null
+--   Alternative:
+--     pattern: null
+--     discriminator: constructor
+--     type: object
+--     properties: null
+--   Field:
+--     pattern: null
+--     discriminator: null
+--     type: null
+--     properties:
+--       name: null
+--       dataType: DataType
+--   NumberType: Alternative
+--   StringType: Alternative
+--   DataType: (StringType | NumberType | DateType | BooleanType)
 parse :: Yaml.Value -> ParseTree
 parse v = case Json.fromJSON v of
     Json.Error err -> error err

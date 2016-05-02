@@ -13,3 +13,8 @@ types:
         pattern: "[YMD]+[-\\.][YMD]+[-\\.\\/][YMD]+"
   BooleanType: Alternative
   DataType: StringType | NumberType | DateType | BooleanType
+  
+  Field:
+    properties:
+      name:
+      dataType: DataType
