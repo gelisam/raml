@@ -11,19 +11,19 @@ import qualified Raml.Parser as Parser
 
 
 data TypeProps = TypeProps
-  { type_ :: TypeExpr -- either the property's type or the parent type
-  , properties :: Maybe (Map PropertyName (OrElse TypeExpr TypeProps))
+  { parentType :: TypeExpr
+  , properties :: Maybe (Map PropertyName TypeProps)
   , discriminator :: Maybe PropertyName
   , stringPattern :: Maybe Regexp
   } deriving (Show, Eq)
 
 newtype NormalizedTree = NormalizedTree
-  { unNormalizedTree :: Map TypeName (OrElse TypeExpr TypeProps)
+  { unNormalizedTree :: Map TypeName TypeProps
   } deriving (Show, Eq)
 
 
 instance ToJSON TypeProps where
-  toJSON t = object [ "type" .=! type_ t
+  toJSON t = object [ "type" .=! parentType t
                     , "properties" .=? properties t
                     , "discriminator" .=? discriminator t
                     , "pattern" .=? stringPattern t
@@ -35,15 +35,25 @@ instance ToJSON NormalizedTree where
 
 
 normalizePropertyType :: Maybe (OrElse TypeExpr Parser.TypeProps)
-                      -> OrElse TypeExpr TypeProps
-normalizePropertyType Nothing = OrElse (Left String)
-normalizePropertyType (Just (OrElse (Left  x))) = OrElse (Left x)
-normalizePropertyType (Just (OrElse (Right y))) = OrElse (Right (normalizeTypeProps y))
+                      -> TypeProps
+normalizePropertyType Nothing = TypeProps
+                              { parentType = String
+                              , properties = Nothing
+                              , discriminator = Nothing
+                              , stringPattern = Nothing
+                              }
+normalizePropertyType (Just (OrElse (Left x))) = TypeProps
+                                               { parentType = x
+                                               , properties = Nothing
+                                               , discriminator = Nothing
+                                               , stringPattern = Nothing
+                                               }
+normalizePropertyType (Just (OrElse (Right y))) = normalizeTypeProps y
 
 normalizeTypeProps :: Parser.TypeProps -> TypeProps
 normalizeTypeProps p = TypeProps
-                     { type_ = fromMaybe defaultType
-                             $ Parser.type_ p
+                     { parentType = fromMaybe defaultType
+                                  $ Parser.type_ p
                      , properties = (fmap . fmap) normalizePropertyType
                                   $ Parser.properties p
                      , discriminator = Parser.discriminator p
@@ -59,7 +69,8 @@ normalizeTypeProps p = TypeProps
 -- >>> r <- normalize <$> Parser.parse <$> readYaml "tests/sample.in"
 -- >>> printAsYaml r
 -- types:
---   BooleanType: Alternative
+--   BooleanType:
+--     type: Alternative
 --   DateType:
 --     type: Alternative
 --     properties:
@@ -72,10 +83,15 @@ normalizeTypeProps p = TypeProps
 --   Field:
 --     type: object
 --     properties:
---       name: string
---       dataType: DataType
---   NumberType: Alternative
---   StringType: Alternative
---   DataType: (StringType | NumberType | DateType | BooleanType)
+--       name:
+--         type: string
+--       dataType:
+--         type: DataType
+--   NumberType:
+--     type: Alternative
+--   StringType:
+--     type: Alternative
+--   DataType:
+--     type: (StringType | NumberType | DateType | BooleanType)
 normalize :: ParseTree -> NormalizedTree
-normalize = NormalizedTree . (fmap . fmap) normalizeTypeProps . unParseTree
+normalize = NormalizedTree . fmap (normalizePropertyType . Just) . unParseTree
