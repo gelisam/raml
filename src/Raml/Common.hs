@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, PatternSynonyms, ViewPatterns #-}
+{-# LANGUAGE DeriveFunctor, OverloadedStrings, PatternSynonyms, ViewPatterns #-}
 module Raml.Common where
 
 import Control.Applicative
@@ -18,7 +18,7 @@ type Regexp = String
 -- OrElse's json encoding is "..."
 newtype OrElse a b = OrElse
   { unOrElse :: Either a b
-  } deriving (Show, Eq)
+  } deriving (Show, Eq, Functor)
 
 
 pattern YamlString s <- Yaml.String (Text.unpack -> s) where
@@ -33,6 +33,9 @@ object = Yaml.object . catMaybes
 key .=? value = do
     v <- value
     return (key, toJSON v)
+
+(.=!) :: ToJSON a => Text -> a -> Maybe (Text, Yaml.Value)
+key .=! value = return (key, toJSON value)
 
 
 instance (FromJSON a, FromJSON b) => FromJSON (OrElse a b) where
