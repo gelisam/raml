@@ -15,7 +15,8 @@ build-type:          Simple
 cabal-version:       >=1.10
 
 library
-  exposed-modules:     Raml.Common
+  exposed-modules:     Data.Yaml.Extra
+                     , Raml.Common
                      , Raml.Parser
                      , Raml.Normalizer
                      , Raml.Classifier

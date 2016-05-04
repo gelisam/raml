@@ -6,6 +6,7 @@ import           Data.Map (Map, (!))
 import qualified Data.Map as Map
 import           Data.Yaml (ToJSON(..))
 
+import Data.Yaml.Extra
 import Raml.Common
 import           Raml.Normalizer (NormalizedTree(..))
 import qualified Raml.Normalizer as Normalizer

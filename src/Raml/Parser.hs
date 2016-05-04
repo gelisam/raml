@@ -9,6 +9,7 @@ import qualified Data.Yaml as Yaml
 import Extra
 import Text.Printf
 
+import Data.Yaml.Extra
 import Raml.Common
 
 

@@ -5,7 +5,8 @@ import           Data.Map (Map)
 import           Data.Maybe
 import           Data.Yaml (ToJSON(..))
 
-import           Raml.Common
+import Data.Yaml.Extra
+import Raml.Common
 import           Raml.Parser (TypeExpr(..), ParseTree(..))
 import qualified Raml.Parser as Parser
 
