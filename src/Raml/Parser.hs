@@ -23,7 +23,7 @@ data TypeExpr
 data TypeProps = TypeProps
   { type_ :: Maybe TypeExpr -- either the property's type or the parent type
   , properties :: Maybe (Map PropertyName (Maybe (OrElse TypeExpr TypeProps)))
-  , discriminator :: Maybe PropertyName
+  , discriminator :: Maybe Discriminator
   , stringPattern :: Maybe Regexp
   } deriving (Show, Eq)
 

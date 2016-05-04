@@ -14,7 +14,7 @@ import qualified Raml.Parser as Parser
 data TypeProps = TypeProps
   { parentType :: TypeExpr
   , properties :: Maybe (Map PropertyName TypeProps)
-  , discriminator :: Maybe PropertyName
+  , discriminator :: Maybe Discriminator
   , stringPattern :: Maybe Regexp
   } deriving (Show, Eq)
 

@@ -38,7 +38,7 @@ data Type
 data ObjectProps = ObjectProps
   { parentObjectType :: ObjectType
   , properties :: Map PropertyName TypeProps
-  , objectDiscriminator :: Maybe PropertyName
+  , objectDiscriminator :: Maybe Discriminator
   } deriving (Show, Eq)
 
 data StringProps = StringProps
@@ -151,9 +151,9 @@ mergeProperties symbolTable = go
     go x (Just y) =
         error "unsupported: merging properties %s and %s" (show x) (show y)
 
-mergeDiscriminators :: Maybe PropertyName
-                    -> Maybe PropertyName
-                    -> Maybe PropertyName
+mergeDiscriminators :: Maybe Discriminator
+                    -> Maybe Discriminator
+                    -> Maybe Discriminator
 mergeDiscriminators (Just x) (Just y) =
     error "illegal: disriminator %s cannot replace %s" (show y) (show x)
 mergeDiscriminators x y = x <|> y
@@ -169,7 +169,7 @@ mergeStringPatterns x y = x <|> y
 mergeObjectProps :: SymbolTable
                  -> ObjectProps
                  -> Maybe (Map PropertyName Normalizer.TypeProps)
-                 -> Maybe PropertyName
+                 -> Maybe Discriminator
                  -> ObjectProps
 mergeObjectProps symbolTable
                  (ObjectProps inheritedParent
@@ -198,7 +198,7 @@ mergeUnionProps = id
 mergeTypeProps :: SymbolTable
                -> TypeProps
                -> Maybe (Map PropertyName Normalizer.TypeProps)
-               -> Maybe PropertyName
+               -> Maybe Discriminator
                -> Maybe Regexp
                -> TypeProps
 mergeTypeProps symbolTable = go

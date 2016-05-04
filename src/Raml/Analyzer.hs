@@ -53,7 +53,7 @@ data DummyProps = DummyProps
 
 data NamedSumProps = NamedSumProps
   { branches :: Map BranchName BranchProps
-  , discriminator :: String
+  , discriminator :: Discriminator
   } deriving (Show, Eq)
 
 data NamedProductProps = NamedProductProps
