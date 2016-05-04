@@ -1,5 +1,5 @@
 {-# LANGUAGE DeriveFunctor, OverloadedStrings, PatternSynonyms, ViewPatterns #-}
-module Data.Yaml.Extra where
+module Data.Yaml.MyExtra where
 
 import Control.Applicative
 import Data.Maybe

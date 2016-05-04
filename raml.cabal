@@ -15,7 +15,7 @@ build-type:          Simple
 cabal-version:       >=1.10
 
 library
-  exposed-modules:     Data.Yaml.Extra
+  exposed-modules:     Data.Yaml.MyExtra
                      , Raml.Common
                      , Raml.Parser
                      , Raml.Normalizer
