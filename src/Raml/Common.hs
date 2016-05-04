@@ -12,6 +12,7 @@ import qualified Data.Yaml as Yaml
 
 type TypeName = String
 type PropertyName = String
+type BranchName = String
 type Regexp = String
 
 -- Either's json encoding is "{Left: ...}",
