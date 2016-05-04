@@ -298,4 +298,4 @@ classify = ClassifiedTree . go . unNormalizedTree
     go oldSymbolTable = newSymbolTable
       where
         newSymbolTable :: SymbolTable
-        newSymbolTable = fmap (classifyTypeProps newSymbolTable) oldSymbolTable 
+        newSymbolTable = fmap (classifyTypeProps newSymbolTable) oldSymbolTable
