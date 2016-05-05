@@ -5,6 +5,7 @@ import Control.Applicative
 import           Data.Map (Map, (!))
 import qualified Data.Map as Map
 import           Data.Yaml (ToJSON(..))
+import Text.Printf
 
 import Data.Yaml.MyExtra
 import Raml.Common
@@ -110,8 +111,8 @@ classifyUnionBranch symbolTable = go
     go (Normalizer.Ref x) = case symbolTable ! x of
         ObjectTypeProps _ -> ObjectBranch (ObjectRef x)
         StringTypeProps _ -> StringBranch (StringRef x)
-        UnionTypeProps _ -> error "unsupported: nested union type %s" (show x)
-    go (Normalizer.Union xs) = error "unsupported: nested union type %s" (show xs)
+        UnionTypeProps _ -> error $ printf "unsupported: nested union type %s" (show x)
+    go (Normalizer.Union xs) = error $ printf "unsupported: nested union type %s" (show xs)
 
 inheritFromTypeExpr :: SymbolTable -> Normalizer.TypeExpr -> TypeProps
 inheritFromTypeExpr symbolTable = go
@@ -149,20 +150,20 @@ mergeProperties symbolTable = go
     go x (Just y) | Map.null x =
         fmap (classifyTypeProps symbolTable) y
     go x (Just y) =
-        error "unsupported: merging properties %s and %s" (show x) (show y)
+        error $ printf "unsupported: merging properties %s and %s" (show x) (show y)
 
 mergeDiscriminators :: Maybe Discriminator
                     -> Maybe Discriminator
                     -> Maybe Discriminator
 mergeDiscriminators (Just x) (Just y) =
-    error "illegal: disriminator %s cannot replace %s" (show y) (show x)
+    error $ printf "illegal: disriminator %s cannot replace %s" (show y) (show x)
 mergeDiscriminators x y = x <|> y
 
 mergeStringPatterns :: Maybe Regexp
                     -> Maybe Regexp
                     -> Maybe Regexp
 mergeStringPatterns (Just x) (Just y) =
-    error "unsupported: merging string patterns %s and %s" (show x) (show y)
+    error $ printf "unsupported: merging string patterns %s and %s" (show x) (show y)
 mergeStringPatterns x y = x <|> y
 
 
@@ -214,21 +215,21 @@ mergeTypeProps symbolTable = go
                                           newProperties
                                           newDiscriminator)
     go (ObjectTypeProps _) _ _ (Just newStringPattern) =
-        error "illegal string pattern %s in object type" (show newStringPattern)
+        error $ printf "illegal string pattern %s in object type" (show newStringPattern)
     go (StringTypeProps stringProps) Nothing Nothing newStringPattern =
         StringTypeProps (mergeStringProps stringProps newStringPattern)
     go (StringTypeProps _) (Just newProperties) _ _ =
-        error "illegal properties %s in string type" (show newProperties)
+        error $ printf "illegal properties %s in string type" (show newProperties)
     go (StringTypeProps _) _ (Just newDiscriminator) _ =
-        error "illegal discriminator %s in string type" (show newDiscriminator)
+        error $ printf "illegal discriminator %s in string type" (show newDiscriminator)
     go (UnionTypeProps unionProps) Nothing Nothing Nothing =
         UnionTypeProps (mergeUnionProps unionProps)
     go (UnionTypeProps _) (Just newProperties) _ _ =
-        error "unsupported: extra properties %s in union type" (show newProperties)
+        error $ printf "unsupported: extra properties %s in union type" (show newProperties)
     go (UnionTypeProps _) _ (Just newDiscriminator) _ =
-        error "unsupported: extra discriminator %s in union type" (show newDiscriminator)
+        error $ printf "unsupported: extra discriminator %s in union type" (show newDiscriminator)
     go (UnionTypeProps _) _ _ (Just newStringPattern) =
-        error "illegal string pattern %s in union type" (show newStringPattern)
+        error $ printf "illegal string pattern %s in union type" (show newStringPattern)
 
 
 classifyTypeProps :: SymbolTable -> Normalizer.TypeProps -> TypeProps
