@@ -110,7 +110,7 @@ classifyUnionBranch symbolTable = go
     go (Normalizer.Ref x) = case symbolTable ! x of
         ObjectTypeProps _ -> ObjectBranch (ObjectRef x)
         StringTypeProps _ -> StringBranch (StringRef x)
-        UnionTypeProps xs -> error "unsupported: nested union type %s" (show xs)
+        UnionTypeProps _ -> error "unsupported: nested union type %s" (show x)
     go (Normalizer.Union xs) = error "unsupported: nested union type %s" (show xs)
 
 inheritFromTypeExpr :: SymbolTable -> Normalizer.TypeExpr -> TypeProps
