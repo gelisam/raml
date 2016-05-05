@@ -101,7 +101,7 @@ instance ToJSON Field where
   toJSON (CustomStringField x) = toJSON x
 
 instance ToJSON BranchProps where
-  toJSON (BranchProps props) = object [ "properties" .=! props
+  toJSON (BranchProps props) = object [ "properties" .=? props
                                       ]
 
 instance ToJSON DummyProps where
@@ -111,7 +111,7 @@ instance ToJSON NamedSumProps where
   toJSON (NamedSumProps branches) = toJSON branches
 
 instance ToJSON NamedProductProps where
-  toJSON (NamedProductProps fields) = object [ "properties" .=! fields
+  toJSON (NamedProductProps fields) = object [ "properties" .=? fields
                                              ]
 
 instance ToJSON TypeProps where
@@ -254,17 +254,14 @@ analyzeTypeProps unionUsage symbolTable typeName = go
 --       name: string
 --       dataType: DataType
 --   DataType:
---     BooleanType:
---       properties: {}
+--     BooleanType: {}
 --     DateType:
 --       properties:
 --         dateFormat:
 --           pattern: ! '[YMD]+[-\.][YMD]+[-\.\/][YMD]+'
 --           type: string
---     NumberType:
---       properties: {}
---     StringType:
---       properties: {}
+--     NumberType: {}
+--     StringType: {}
 analyze :: ClassifiedTree -> AnalyzedTree
 analyze = AnalyzedTree . Map.mapMaybe topLevelOnly . go . unClassifiedTree
   where
