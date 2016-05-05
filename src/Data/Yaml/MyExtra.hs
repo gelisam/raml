@@ -1,6 +1,8 @@
 {-# LANGUAGE DeriveFunctor, OverloadedStrings, PatternSynonyms, ViewPatterns #-}
 module Data.Yaml.MyExtra where
 
+import Prelude hiding (null)
+
 import Control.Applicative
 import Data.Maybe
 import qualified Data.ByteString.Char8 as ByteString
@@ -8,6 +10,8 @@ import           Data.Text (Text)
 import qualified Data.Text as Text
 import           Data.Yaml (FromJSON(..), ToJSON(..))
 import qualified Data.Yaml as Yaml
+
+import Data.Empty
 
 
 -- Either's json encoding is "{Left: ...}",
@@ -25,10 +29,8 @@ pattern YamlString s <- Yaml.String (Text.unpack -> s) where
 object :: [Maybe (Text, Yaml.Value)] -> Yaml.Value
 object = Yaml.object . catMaybes
 
-(.=?) :: ToJSON a => Text -> Maybe a -> Maybe (Text, Yaml.Value)
-key .=? value = do
-    v <- value
-    return (key, toJSON v)
+(.=?) :: (ToJSON a, Empty a) => Text -> a -> Maybe (Text, Yaml.Value)
+key .=? value = if null value then Nothing else Just (key, toJSON value)
 
 (.=!) :: ToJSON a => Text -> a -> Maybe (Text, Yaml.Value)
 key .=! value = return (key, toJSON value)
