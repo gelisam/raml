@@ -37,14 +37,19 @@ countInUnionBranch (ObjectBranch objectType) = countInObjectType objectType
 countInUnionBranch (StringBranch stringType) = countInStringType stringType
 
 
+countInFieldProps :: FieldProps -> UnionUsage
+countInFieldProps (RegularField _) = mempty
+countInFieldProps (CustomField typeProps) = countInTypeProps typeProps
+
+
 countInObjectProps :: ObjectProps -> UnionUsage
-countInObjectProps = foldMap countInTypeProps . properties
+countInObjectProps = foldMap countInFieldProps . properties
 
 countInStringProps :: StringProps -> UnionUsage
 countInStringProps _ = mempty
 
 countInUnionProps :: UnionProps -> UnionUsage
-countInUnionProps = foldMap countInUnionBranch
+countInUnionProps (UnionProps branches) = foldMap countInUnionBranch branches
 
 
 countInTypeProps :: TypeProps -> UnionUsage
