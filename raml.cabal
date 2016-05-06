@@ -28,6 +28,7 @@ library
                      , Raml.ScalaName
                      , Raml.Generator
                      , Raml.Simplifier
+                     , Raml.PrettyPrinter
   -- other-modules:       
   -- other-extensions:    
   build-depends:       base >=4.8 && <4.9
