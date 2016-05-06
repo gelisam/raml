@@ -7,6 +7,7 @@ import qualified Data.Map as Map
 import           Data.Yaml (ToJSON(..))
 import Text.Printf
 
+import Data.Empty
 import Data.IndentedCode
 import Data.Yaml.MyExtra
 import Raml.Common
@@ -108,6 +109,10 @@ instance ToJSON GeneratedCode where
   toJSON (GeneratedCaseObject x) = toJSON x
   toJSON (GeneratedCaseClass x) = toJSON x
   toJSON (GeneratedCompanionObject x) = toJSON x
+
+instance Empty GeneratedCode where
+  null (GeneratedCompanionObject (CompanionObject _ [])) = True
+  null _ = False
 
 instance ToJSON GeneratedTree where
   toJSON (GeneratedTree x) = toJSON x
