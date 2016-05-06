@@ -31,3 +31,14 @@ capitalize :: ScalaName -> ScalaName
 capitalize (ScalaName s) = ScalaName (String.capitalize s)
 capitalize (PrefixedName prefix s) = PrefixedName (String.capitalize prefix) s
 capitalize (QualifiedName qualifier s) = QualifiedName qualifier (capitalize s)
+
+
+type CompanionNamer = PropertyName -> String -> ScalaName
+
+qualifiedCompanionNamer :: TypeName -> CompanionNamer
+qualifiedCompanionNamer companionName fieldName varName =
+    companionName .++ fieldName +++ ScalaName varName
+
+unqualifiedCompanionNamer :: CompanionNamer
+unqualifiedCompanionNamer fieldName varName =
+    fieldName +++ ScalaName varName

@@ -1,11 +1,17 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Raml.Generator where
 
+import Data.Maybe
+import           Data.Map (Map)
+import qualified Data.Map as Map
 import           Data.Yaml (ToJSON(..))
+import Text.Printf
 
 import Data.Yaml.MyExtra
 import Raml.Common
+import Raml.ScalaName
 import           Raml.Analyzer (AnalyzedTree(..))
+import qualified Raml.Analyzer as Analyzer
 
 
 data Expr
@@ -116,6 +122,172 @@ instance ToJSON GeneratedTree where
   toJSON (GeneratedTree x) = toJSON x
 
 
+generateType :: Analyzer.Field -> TypeName
+generateType (Analyzer.RegularField typeName) = typeName
+generateType (Analyzer.BuiltinField Analyzer.String) = "String"
+generateType (Analyzer.CustomStringField _) = "String"
+
+generateField :: PropertyName -> Analyzer.Field -> Field
+generateField fieldName_ type_ = Field fieldName_ (generateType type_)
+
+
+generateStringFieldRequirement :: CompanionNamer
+                               -> PropertyName
+                               -> Analyzer.StringFieldProps
+                               -> Expr
+generateStringFieldRequirement companionNamer fieldName_ _ =
+    IndentedBlock
+    [ SingleLineExpr $ printf "%s match {" fieldName_
+    , IndentedBlock
+      [ SingleLineExpr $ printf "case %s() => true"
+                                (nameToString patternVar)
+      , SingleLineExpr "case _ => false"
+      ]
+    , SingleLineExpr "}"
+    ]
+  where
+    patternVar :: ScalaName
+    patternVar = capitalize (companionNamer fieldName_ "pattern")
+
+accompanyStringFieldRequirement :: CompanionNamer
+                                -> PropertyName
+                                -> Analyzer.StringFieldProps
+                                -> [Val]
+accompanyStringFieldRequirement companionNamer fieldName_
+                                (Analyzer.StringFieldProps pattern) =
+    [ Val
+    { valName = nameToString patternVar
+    , valValue = SingleLineExpr $ printf "%s.r" (show pattern)
+    }
+    ]
+  where
+    patternVar = capitalize (companionNamer fieldName_ "pattern")
+
+
+generateRequirement :: CompanionNamer
+                    -> PropertyName
+                    -> Analyzer.Field
+                    -> Maybe Expr
+generateRequirement companionNamer fieldName_ = go
+  where
+    go :: Analyzer.Field -> Maybe Expr
+    go (Analyzer.RegularField _) = Nothing
+    go (Analyzer.BuiltinField _) = Nothing
+    go (Analyzer.CustomStringField stringFieldProps) =
+        Just $ generateStringFieldRequirement companionNamer fieldName_ stringFieldProps
+
+accompanyRequirement :: CompanionNamer
+                     -> PropertyName
+                     -> Analyzer.Field
+                     -> [Val]
+accompanyRequirement companionNamer fieldName_ = go
+  where
+    go :: Analyzer.Field -> [Val]
+    go (Analyzer.RegularField _) = []
+    go (Analyzer.BuiltinField _) = []
+    go (Analyzer.CustomStringField customField) =
+        accompanyStringFieldRequirement companionNamer fieldName_ customField
+
+
+generateProductClass :: TypeName -> Analyzer.NamedProductProps -> [GeneratedCode]
+generateProductClass typeName (Analyzer.NamedProductProps fields) =
+    [ GeneratedCaseClass
+    $ CaseClass
+    { caseClassName = typeName
+    , caseClassParent = Nothing
+    , parameters = map (uncurry generateField) (Map.toList fields)
+    , requirements = mapMaybe (uncurry go) (Map.toList fields)
+    }
+    ]
+  where
+    go :: PropertyName -> Analyzer.Field -> Maybe Expr
+    go = generateRequirement companionNamer
+    
+    companionNamer :: CompanionNamer
+    companionNamer = qualifiedCompanionNamer typeName
+
+accompanyProductClass :: TypeName -> Analyzer.NamedProductProps -> [GeneratedCode]
+accompanyProductClass typeName (Analyzer.NamedProductProps fields) =
+    accompanyCaseClass unqualifiedCompanionNamer typeName fields
+
+
+generateCaseClass :: CompanionNamer
+                  -> TypeName
+                  -> Maybe TypeName
+                  -> Map PropertyName Analyzer.Field
+                  -> [GeneratedCode]
+generateCaseClass companionNamer typeName parentName fields =
+    [ GeneratedCaseClass
+    $ CaseClass
+    { caseClassName = typeName
+    , caseClassParent = parentName
+    , parameters = map (uncurry generateField) (Map.toList fields)
+    , requirements = mapMaybe (uncurry go) (Map.toList fields)
+    }
+    ]
+  where
+    go :: PropertyName -> Analyzer.Field -> Maybe Expr
+    go = generateRequirement companionNamer
+
+accompanyCaseClass :: CompanionNamer
+                   -> TypeName
+                   -> Map PropertyName Analyzer.Field
+                   -> [GeneratedCode]
+accompanyCaseClass companionNamer typeName fields =
+    [ GeneratedCompanionObject
+    $ CompanionObject
+    { companionName = typeName
+    , staticVals = foldMap (uncurry go) (Map.toList fields)
+    }
+    ]
+  where
+    go :: PropertyName -> Analyzer.Field -> [Val]
+    go = accompanyRequirement companionNamer
+
+
+generateBranch :: TypeName -> BranchName -> Analyzer.BranchProps -> [GeneratedCode]
+generateBranch parentName branchName (Analyzer.BranchProps fields) =
+    generateCaseClass companionNamer branchName (Just parentName) fields
+  where
+    companionNamer :: CompanionNamer
+    companionNamer = qualifiedCompanionNamer branchName
+
+accompanyBranch :: BranchName -> Analyzer.BranchProps -> [GeneratedCode]
+accompanyBranch typeName (Analyzer.BranchProps fields) =
+    accompanyCaseClass unqualifiedCompanionNamer typeName fields
+
+generateBranches :: TypeName -> Analyzer.NamedSumProps -> [GeneratedCode]
+generateBranches typeName (Analyzer.NamedSumProps branches) =
+    [ GeneratedTrait
+    $ Trait typeName
+    ] ++
+    foldMap (uncurry (generateBranch typeName)) (Map.toList branches)
+
+accompanyBranches :: TypeName -> Analyzer.NamedSumProps -> [GeneratedCode]
+accompanyBranches typeName (Analyzer.NamedSumProps branches) =
+    accompanyCaseClass unqualifiedCompanionNamer typeName Map.empty ++
+    foldMap (uncurry accompanyBranch) (Map.toList branches)
+
+
+generateNamedSum :: TypeName -> Analyzer.NamedSumProps -> [[GeneratedCode]]
+generateNamedSum typeName namedSum =
+    [ generateBranches typeName namedSum
+    , accompanyBranches typeName namedSum
+    ]
+
+generateNamedProduct :: TypeName -> Analyzer.NamedProductProps -> [[GeneratedCode]]
+generateNamedProduct typeName namedProduct =
+    [ generateProductClass typeName namedProduct
+    , accompanyProductClass typeName namedProduct
+    ]
+
+generateTypeProps :: TypeName -> Analyzer.TypeProps -> [[GeneratedCode]]
+generateTypeProps typeName (Analyzer.NamedSumTypeProps namedSum) =
+    generateNamedSum typeName namedSum
+generateTypeProps typeName (Analyzer.NamedProductTypeProps namedProduct) =
+    generateNamedProduct typeName namedProduct
+
+
 -- |
 -- >>> import Raml.Parser
 -- >>> import Raml.Normalizer
@@ -125,12 +297,9 @@ instance ToJSON GeneratedTree where
 -- >>> printAsYaml r
 -- - - - trait:
 --         name: DataType
---     - case_object:
+--     - case_class:
 --         parent: DataType
---         name: StringType
---     - case_object:
---         parent: DataType
---         name: NumberType
+--         name: BooleanType
 --     - case_class:
 --         parent: DataType
 --         requirements:
@@ -143,53 +312,39 @@ instance ToJSON GeneratedTree where
 --         - field:
 --             name: dateFormat
 --             type: String
---     - case_object:
+--     - case_class:
 --         parent: DataType
---         name: BooleanType
+--         name: NumberType
+--     - case_class:
+--         parent: DataType
+--         name: StringType
 --   - - companion_object:
+--         name: DataType
+--     - companion_object:
+--         name: BooleanType
+--     - companion_object:
 --         name: DateType
 --         vals:
 --         - val:
---             value: ! '"[YMD]+[-\.][YMD]+[-\.\/][YMD]+".r'
+--             value: ! '"[YMD]+[-\\.][YMD]+[-\\.\\/][YMD]+".r'
 --             name: DateFormatPattern
+--     - companion_object:
+--         name: NumberType
+--     - companion_object:
+--         name: StringType
 -- - - - case_class:
 --         name: Field
 --         parameters:
 --         - field:
---             name: name
---             type: String
---         - field:
 --             name: dataType
 --             type: DataType
+--         - field:
+--             name: name
+--             type: String
+--   - - companion_object:
+--         name: Field
 generate :: AnalyzedTree -> GeneratedTree
-generate _ = GeneratedTree
-    [ [ [ GeneratedTrait $ Trait "DataType"
-        , GeneratedCaseObject $ CaseObject "StringType" (Just "DataType")
-        , GeneratedCaseObject $ CaseObject "NumberType" (Just "DataType")
-        , GeneratedCaseClass $ CaseClass "DateType" (Just "DataType")
-                             [ Field "dateFormat" "String"
-                             ]
-                             [ IndentedBlock
-                               [ SingleLineExpr "dateFormat match {"
-                               , IndentedBlock
-                                 [ SingleLineExpr "case DateType.DateFormatPattern() => true"
-                                 , SingleLineExpr "case _ => false"
-                                 ]
-                               , SingleLineExpr "}"
-                               ]
-                             ]
-        , GeneratedCaseObject $ CaseObject "BooleanType" (Just "DataType")
-        ]
-      , [ GeneratedCompanionObject $ CompanionObject "DateType"
-                                   [ Val "DateFormatPattern"
-                                         (SingleLineExpr "\"[YMD]+[-\\.][YMD]+[-\\.\\/][YMD]+\".r")
-                                   ]
-        ]
-      ]
-    , [ [ GeneratedCaseClass $ CaseClass "Field" Nothing
-                             [ Field "name" "String"
-                             , Field "dataType" "DataType"
-                             ] []
-        ]
-      ]
-    ]
+generate = GeneratedTree
+         . map (uncurry generateTypeProps)
+         . Map.toList
+         . unAnalyzedTree
