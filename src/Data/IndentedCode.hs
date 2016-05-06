@@ -1,5 +1,9 @@
 module Data.IndentedCode where
 
+import Data.Yaml (ToJSON(..))
+
+import Data.Yaml.MyExtra
+
 
 type IndentedCode = [CodeChunk]
 
@@ -7,6 +11,10 @@ data CodeChunk
   = Line String
   | Indented IndentedCode
   deriving (Show, Eq)
+
+instance ToJSON CodeChunk where
+  toJSON (Line x) = YamlString x
+  toJSON (Indented xs) = toJSON xs
 
 
 printIndented :: IndentedCode -> IO ()

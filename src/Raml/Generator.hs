@@ -7,17 +7,12 @@ import qualified Data.Map as Map
 import           Data.Yaml (ToJSON(..))
 import Text.Printf
 
+import Data.IndentedCode
 import Data.Yaml.MyExtra
 import Raml.Common
 import Raml.ScalaName
 import           Raml.Analyzer (AnalyzedTree(..))
 import qualified Raml.Analyzer as Analyzer
-
-
-data Expr
-  = SingleLineExpr String
-  | IndentedBlock [Expr]
-  deriving (Show, Eq)
 
 
 data Trait = Trait
@@ -39,13 +34,13 @@ data CaseClass = CaseClass
   { caseClassName :: TypeName
   , caseClassParent :: Maybe TypeName
   , parameters :: [Field]
-  , requirements :: [Expr]
+  , requirements :: [CodeChunk]
   } deriving (Show, Eq)
 
 
 data Val = Val
   { valName :: ValName
-  , valValue :: Expr
+  , valValue :: CodeChunk
   } deriving (Show, Eq)
 
 data CompanionObject = CompanionObject
@@ -64,10 +59,6 @@ newtype GeneratedTree = GeneratedTree
   { unGeneratedTree :: [[[GeneratedCode]]]
   } deriving (Show, Eq)
 
-
-instance ToJSON Expr where
-  toJSON (SingleLineExpr x) = YamlString x
-  toJSON (IndentedBlock xs) = toJSON xs
 
 instance ToJSON Trait where
   toJSON (Trait name) =
@@ -134,16 +125,16 @@ generateField fieldName_ type_ = Field fieldName_ (generateType type_)
 generateStringFieldRequirement :: CompanionNamer
                                -> PropertyName
                                -> Analyzer.StringFieldProps
-                               -> Expr
+                               -> CodeChunk
 generateStringFieldRequirement companionNamer fieldName_ _ =
-    IndentedBlock
-    [ SingleLineExpr $ printf "%s match {" fieldName_
-    , IndentedBlock
-      [ SingleLineExpr $ printf "case %s() => true"
+    Indented
+    [ Line $ printf "%s match {" fieldName_
+    , Indented
+      [ Line $ printf "case %s() => true"
                                 (nameToString patternVar)
-      , SingleLineExpr "case _ => false"
+      , Line "case _ => false"
       ]
-    , SingleLineExpr "}"
+    , Line "}"
     ]
   where
     patternVar :: ScalaName
@@ -157,7 +148,7 @@ accompanyStringFieldRequirement companionNamer fieldName_
                                 (Analyzer.StringFieldProps pattern) =
     [ Val
     { valName = nameToString patternVar
-    , valValue = SingleLineExpr $ printf "%s.r" (show pattern)
+    , valValue = Line $ printf "%s.r" (show pattern)
     }
     ]
   where
@@ -167,10 +158,10 @@ accompanyStringFieldRequirement companionNamer fieldName_
 generateRequirement :: CompanionNamer
                     -> PropertyName
                     -> Analyzer.Field
-                    -> Maybe Expr
+                    -> Maybe CodeChunk
 generateRequirement companionNamer fieldName_ = go
   where
-    go :: Analyzer.Field -> Maybe Expr
+    go :: Analyzer.Field -> Maybe CodeChunk
     go (Analyzer.RegularField _) = Nothing
     go (Analyzer.BuiltinField _) = Nothing
     go (Analyzer.CustomStringField stringFieldProps) =
@@ -200,7 +191,7 @@ generateProductClass typeName (Analyzer.NamedProductProps fields) =
     }
     ]
   where
-    go :: PropertyName -> Analyzer.Field -> Maybe Expr
+    go :: PropertyName -> Analyzer.Field -> Maybe CodeChunk
     go = generateRequirement companionNamer
     
     companionNamer :: CompanionNamer
@@ -226,7 +217,7 @@ generateCaseClass companionNamer typeName parentName fields =
     }
     ]
   where
-    go :: PropertyName -> Analyzer.Field -> Maybe Expr
+    go :: PropertyName -> Analyzer.Field -> Maybe CodeChunk
     go = generateRequirement companionNamer
 
 accompanyCaseClass :: CompanionNamer
