@@ -24,6 +24,7 @@ library
                      , Raml.Classifier
                      , Raml.UsageCounter
                      , Raml.Analyzer
+                     , Raml.ScalaName
                      , Raml.Generator
   -- other-modules:       
   -- other-extensions:    
