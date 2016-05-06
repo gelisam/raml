@@ -11,3 +11,7 @@ Classifier.ClassifiedTree (each type is classified as an Object, Union, Number o
 Analyzer.AnalyzedTree
   Generator.generate
 Generator.GeneratedTree (a Scala AST, with methods and companion objects and everything)
+  Simplifier.simplify
+Simplifier.SimplifiedTree (a Scala AST, with case objects instead of case classes and without useless empty companion objects)
+  PrettyPrinter.prettyPrint
+IndentedCode
