@@ -3,7 +3,6 @@ module Raml.PrettyPrinter where
 import Data.List
 import Text.Printf
 
-import Data.Empty
 import Data.IndentedCode
 import Raml.Generator
 
