@@ -33,32 +33,32 @@ instance Simplify GeneratedCode where
 -- - - - trait:
 --         name: DataType
 --     - case_object:
---         parent: DataType
 --         name: BooleanType
---     - case_class:
 --         parent: DataType
+--     - case_class:
+--         name: DateType
+--         parent: DataType
+--         parameters:
+--         - field:
+--             name: dateFormat
+--             type: String
 --         requirements:
 --         - - dateFormat match {
 --           - - case DateType.DateFormatPattern() => true
 --             - case _ => false
 --           - ! '}'
---         name: DateType
---         parameters:
---         - field:
---             name: dateFormat
---             type: String
 --     - case_object:
---         parent: DataType
 --         name: NumberType
---     - case_object:
 --         parent: DataType
+--     - case_object:
 --         name: StringType
+--         parent: DataType
 --   - - companion_object:
 --         name: DateType
 --         vals:
 --         - val:
---             value: ! '"[YMD]+[-\\.][YMD]+[-\\.\\/][YMD]+".r'
 --             name: DateFormatPattern
+--             value: ! '"[YMD]+[-\\.][YMD]+[-\\.\\/][YMD]+".r'
 -- - - - case_class:
 --         name: Field
 --         parameters:

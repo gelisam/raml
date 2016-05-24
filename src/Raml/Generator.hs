@@ -294,26 +294,26 @@ generateTypeProps typeName (Analyzer.NamedProductTypeProps namedProduct) =
 -- - - - trait:
 --         name: DataType
 --     - case_class:
---         parent: DataType
 --         name: BooleanType
---     - case_class:
 --         parent: DataType
+--     - case_class:
+--         name: DateType
+--         parent: DataType
+--         parameters:
+--         - field:
+--             name: dateFormat
+--             type: String
 --         requirements:
 --         - - dateFormat match {
 --           - - case DateType.DateFormatPattern() => true
 --             - case _ => false
 --           - ! '}'
---         name: DateType
---         parameters:
---         - field:
---             name: dateFormat
---             type: String
 --     - case_class:
---         parent: DataType
 --         name: NumberType
---     - case_class:
 --         parent: DataType
+--     - case_class:
 --         name: StringType
+--         parent: DataType
 --   - - companion_object:
 --         name: DataType
 --     - companion_object:
@@ -322,8 +322,8 @@ generateTypeProps typeName (Analyzer.NamedProductTypeProps namedProduct) =
 --         name: DateType
 --         vals:
 --         - val:
---             value: ! '"[YMD]+[-\\.][YMD]+[-\\.\\/][YMD]+".r'
 --             name: DateFormatPattern
+--             value: ! '"[YMD]+[-\\.][YMD]+[-\\.\\/][YMD]+".r'
 --     - companion_object:
 --         name: NumberType
 --     - companion_object:

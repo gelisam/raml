@@ -84,23 +84,23 @@ instance ToJSON ParseTree where
 -- >>> r <- parse <$> readYaml "tests/sample.in"
 -- >>> printAsYaml r
 -- types:
+--   Alternative:
+--     type: object
+--     discriminator: constructor
 --   BooleanType: Alternative
+--   DataType: (StringType | NumberType | DateType | BooleanType)
 --   DateType:
 --     type: Alternative
 --     properties:
 --       dateFormat:
---         pattern: ! '[YMD]+[-\.][YMD]+[-\.\/][YMD]+'
 --         type: string
---   Alternative:
---     discriminator: constructor
---     type: object
+--         pattern: ! '[YMD]+[-\.][YMD]+[-\.\/][YMD]+'
 --   Field:
 --     properties:
---       name: null
 --       dataType: DataType
+--       name: null
 --   NumberType: Alternative
 --   StringType: Alternative
---   DataType: (StringType | NumberType | DateType | BooleanType)
 parse :: Yaml.Value -> ParseTree
 parse v = case Json.fromJSON v of
     Json.Error err -> error err

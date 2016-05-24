@@ -74,29 +74,29 @@ normalizeTypeProps p = TypeProps
 -- >>> r <- normalize <$> parse <$> readYaml "tests/sample.in"
 -- >>> printAsYaml r
 -- types:
+--   Alternative:
+--     type: object
+--     discriminator: constructor
 --   BooleanType:
 --     type: Alternative
+--   DataType:
+--     type: (StringType | NumberType | DateType | BooleanType)
 --   DateType:
 --     type: Alternative
 --     properties:
 --       dateFormat:
---         pattern: ! '[YMD]+[-\.][YMD]+[-\.\/][YMD]+'
 --         type: string
---   Alternative:
---     discriminator: constructor
---     type: object
+--         pattern: ! '[YMD]+[-\.][YMD]+[-\.\/][YMD]+'
 --   Field:
 --     type: object
 --     properties:
---       name:
---         type: string
 --       dataType:
 --         type: DataType
+--       name:
+--         type: string
 --   NumberType:
 --     type: Alternative
 --   StringType:
 --     type: Alternative
---   DataType:
---     type: (StringType | NumberType | DateType | BooleanType)
 normalize :: ParseTree -> NormalizedTree
 normalize = NormalizedTree . fmap (normalizePropertyType . Just) . unParseTree

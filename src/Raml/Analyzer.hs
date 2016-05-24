@@ -249,19 +249,19 @@ analyzeTypeProps unionUsage symbolTable typeName = go
 -- >>> r <- analyze <$> Classifier.classify <$> normalize <$> parse <$> readYaml "tests/sample.in"
 -- >>> printAsYaml r
 -- types:
---   Field:
---     properties:
---       name: string
---       dataType: DataType
 --   DataType:
 --     BooleanType: {}
 --     DateType:
 --       properties:
 --         dateFormat:
---           pattern: ! '[YMD]+[-\.][YMD]+[-\.\/][YMD]+'
 --           type: string
+--           pattern: ! '[YMD]+[-\.][YMD]+[-\.\/][YMD]+'
 --     NumberType: {}
 --     StringType: {}
+--   Field:
+--     properties:
+--       dataType: DataType
+--       name: string
 analyze :: ClassifiedTree -> AnalyzedTree
 analyze = AnalyzedTree . Map.mapMaybe topLevelOnly . go . unClassifiedTree
   where

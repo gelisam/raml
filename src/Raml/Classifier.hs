@@ -295,29 +295,11 @@ classifyTopLevelTypeProps = classifyTypeProps classifyUnionExpr
 -- >>> r <- classify <$> normalize <$> parse <$> readYaml "tests/sample.in"
 -- >>> printAsYaml r
 -- types:
---   BooleanType:
---     type: Alternative
---     properties: {}
---   DateType:
---     type: Alternative
---     properties:
---       dateFormat:
---         pattern: ! '[YMD]+[-\.][YMD]+[-\.\/][YMD]+'
---         type: string
 --   Alternative:
+--     type: object
+--     properties: {}
 --     discriminator: constructor
---     type: object
---     properties: {}
---   Field:
---     type: object
---     properties:
---       name:
---         type: string
---       dataType: DataType
---   NumberType:
---     type: Alternative
---     properties: {}
---   StringType:
+--   BooleanType:
 --     type: Alternative
 --     properties: {}
 --   DataType:
@@ -325,6 +307,24 @@ classifyTopLevelTypeProps = classifyTypeProps classifyUnionExpr
 --   - NumberType
 --   - DateType
 --   - BooleanType
+--   DateType:
+--     type: Alternative
+--     properties:
+--       dateFormat:
+--         type: string
+--         pattern: ! '[YMD]+[-\.][YMD]+[-\.\/][YMD]+'
+--   Field:
+--     type: object
+--     properties:
+--       dataType: DataType
+--       name:
+--         type: string
+--   NumberType:
+--     type: Alternative
+--     properties: {}
+--   StringType:
+--     type: Alternative
+--     properties: {}
 classify :: NormalizedTree -> ClassifiedTree
 classify = ClassifiedTree . go . unNormalizedTree
   where
