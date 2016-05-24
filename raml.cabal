@@ -38,8 +38,12 @@ library
                      , containers
                      , either
                      , extra
+                     , ghc-prim
                      , text
+                     , template-haskell
+                     , time
                      , transformers
+                     , unordered-containers
                      , vector
                      , yaml
   hs-source-dirs:      src
