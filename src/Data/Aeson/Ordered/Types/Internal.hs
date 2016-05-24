@@ -71,7 +71,6 @@ import Data.ByteString.Builder (Builder, char7, toLazyByteString)
 import Data.Char (isLower, isUpper, toLower, isAlpha, isAlphaNum)
 import Data.Data (Data)
 import Data.Foldable (foldl')
-import Data.HashMap.Strict (HashMap)
 import Data.Hashable (Hashable(..))
 import Data.Semigroup (Semigroup((<>)))
 import Data.Scientific (Scientific)
@@ -81,7 +80,6 @@ import Data.Time (UTCTime)
 import Data.Time.Format (FormatTime)
 import Data.Typeable (Typeable)
 import Data.Vector (Vector)
-import qualified Data.HashMap.Strict as H
 import qualified Data.Scientific as S
 import qualified Data.Vector as V
 import qualified Language.Haskell.TH.Syntax as TH
@@ -95,6 +93,10 @@ import Data.Traversable (Traversable(..))
 #if !MIN_VERSION_unordered_containers(0,2,6)
 import Data.List (sort)
 #endif
+
+import           Data.AList (AList)
+import qualified Data.AList as H
+
 
 -- | Elements of a JSON path used to describe the location of an
 -- error.
@@ -324,7 +326,7 @@ apP d e = do
 {-# INLINE apP #-}
 
 -- | A JSON \"object\" (key\/value map).
-type Object = HashMap Text Value
+type Object = AList Text Value
 
 -- | A JSON \"array\" (sequence).
 type Array = Vector Value
