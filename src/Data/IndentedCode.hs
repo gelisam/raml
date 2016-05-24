@@ -1,8 +1,8 @@
 module Data.IndentedCode where
 
-import Data.Yaml (ToJSON(..))
+import Data.Yaml.Ordered (ToJSON(..))
 
-import Data.Yaml.MyExtra
+import Data.Yaml.Ordered.MyExtra
 
 
 type IndentedCode = [CodeChunk]

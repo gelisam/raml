@@ -3,9 +3,9 @@ module Raml.Normalizer (TypeExpr(..), module Raml.Normalizer) where
 
 import           Data.Map (Map)
 import           Data.Maybe
-import           Data.Yaml (ToJSON(..))
+import           Data.Yaml.Ordered (ToJSON(..))
 
-import Data.Yaml.MyExtra
+import Data.Yaml.Ordered.MyExtra
 import Raml.Common
 import           Raml.Parser (TypeExpr(..), ParseTree(..))
 import qualified Raml.Parser as Parser

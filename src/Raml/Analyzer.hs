@@ -3,11 +3,11 @@ module Raml.Analyzer where
 
 import           Data.Map (Map)
 import qualified Data.Map as Map
-import           Data.Yaml (ToJSON(..))
-import qualified Data.Yaml as Yaml
+import           Data.Yaml.Ordered (ToJSON(..))
+import qualified Data.Yaml.Ordered as Yaml
 import Text.Printf
 
-import Data.Yaml.MyExtra
+import Data.Yaml.Ordered.MyExtra
 import Raml.Common
 import           Raml.Classifier (ClassifiedTree(..))
 import qualified Raml.Classifier as Classifier

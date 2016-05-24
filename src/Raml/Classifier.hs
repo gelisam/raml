@@ -4,10 +4,10 @@ module Raml.Classifier where
 import Data.Maybe
 import           Data.Map (Map, (!))
 import qualified Data.Map as Map
-import           Data.Yaml (ToJSON(..))
+import           Data.Yaml.Ordered (ToJSON(..))
 import Text.Printf
 
-import Data.Yaml.MyExtra
+import Data.Yaml.Ordered.MyExtra
 import Raml.Common
 import           Raml.Normalizer (NormalizedTree(..))
 import qualified Raml.Normalizer as Normalizer

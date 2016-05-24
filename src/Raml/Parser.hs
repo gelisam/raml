@@ -1,15 +1,15 @@
 {-# LANGUAGE OverloadedStrings, PatternSynonyms, ViewPatterns #-}
 module Raml.Parser where
 
-import qualified Data.Aeson as Json
+import qualified Data.Aeson.Ordered as Json
 import qualified Data.List as List
 import           Data.Map (Map)
-import           Data.Yaml (FromJSON(..), ToJSON(..), (.:), (.:?), (.=))
-import qualified Data.Yaml as Yaml
+import           Data.Yaml.Ordered (FromJSON(..), ToJSON(..), (.:), (.:?), (.=))
+import qualified Data.Yaml.Ordered as Yaml
 import Extra
 import Text.Printf
 
-import Data.Yaml.MyExtra
+import Data.Yaml.Ordered.MyExtra
 import Raml.Common
 
 

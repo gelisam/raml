@@ -4,12 +4,12 @@ module Raml.Generator where
 import Data.Maybe
 import           Data.Map (Map)
 import qualified Data.Map as Map
-import           Data.Yaml (ToJSON(..))
+import           Data.Yaml.Ordered (ToJSON(..))
 import Text.Printf
 
 import Data.Empty
 import Data.IndentedCode
-import Data.Yaml.MyExtra
+import Data.Yaml.Ordered.MyExtra
 import Raml.Common
 import Raml.ScalaName
 import           Raml.Analyzer (AnalyzedTree(..))

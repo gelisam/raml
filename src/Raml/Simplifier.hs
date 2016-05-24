@@ -23,7 +23,7 @@ instance Simplify GeneratedCode where
 
 
 -- |
--- >>> import Data.Yaml.MyExtra
+-- >>> import Data.Yaml.Ordered.MyExtra
 -- >>> import Raml.Parser
 -- >>> import Raml.Normalizer
 -- >>> import Raml.Classifier

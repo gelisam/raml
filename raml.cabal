@@ -19,7 +19,7 @@ library
                      , Data.Empty
                      , Data.IndentedCode
                      , Data.String.MyExtra
-                     , Data.Yaml.MyExtra
+                     , Data.Yaml.Ordered.MyExtra
                      , Raml.Common
                      , Raml.Parser
                      , Raml.Normalizer
