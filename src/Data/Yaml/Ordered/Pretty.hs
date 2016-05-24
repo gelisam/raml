@@ -2,7 +2,7 @@
 -- | Prettier YAML encoding.
 --
 -- Since 0.8.13
-module Data.Yaml.Pretty
+module Data.Yaml.Ordered.Pretty
     ( encodePretty
     , Config
     , getConfCompare
@@ -26,7 +26,7 @@ import Data.Monoid
 import Data.Text (Text)
 import qualified Data.Vector as V
 
-import Data.Yaml.Builder
+import Data.Yaml.Ordered.Builder
 
 -- |
 -- Since 0.8.13

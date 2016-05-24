@@ -3,7 +3,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 -- | NOTE: This module is a highly experimental preview release. It may change
 -- drastically, or be entirely removed, in a future release.
-module Data.Yaml.Parser where
+module Data.Yaml.Ordered.Parser where
 
 import Control.Applicative
 import Control.Exception (Exception)

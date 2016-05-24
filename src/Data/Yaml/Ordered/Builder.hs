@@ -3,7 +3,7 @@
 {-# LANGUAGE CPP #-}
 -- | NOTE: This module is a highly experimental preview release. It may change
 -- drastically, or be entirely removed, in a future release.
-module Data.Yaml.Builder
+module Data.Yaml.Ordered.Builder
     ( YamlBuilder (..)
     , ToYaml (..)
     , mapping
@@ -36,7 +36,7 @@ import qualified Data.Text.Lazy as TL
 import Data.Text.Lazy.Builder (toLazyText)
 import System.IO.Unsafe (unsafePerformIO)
 
-import Data.Yaml.Internal
+import Data.Yaml.Ordered.Internal
 import Text.Libyaml
 
 (.=) :: ToYaml a => Text -> a -> (Text, YamlBuilder)

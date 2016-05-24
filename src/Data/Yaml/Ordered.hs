@@ -22,9 +22,9 @@
 -- pointers on how to use this library.
 
 #if (defined (ghcjs_HOST_OS))
-module Data.Yaml {-# WARNING "GHCJS is not supported yet (will break at runtime once called)." #-}
+module Data.Yaml.Ordered {-# WARNING "GHCJS is not supported yet (will break at runtime once called)." #-}
 #else
-module Data.Yaml
+module Data.Yaml.Ordered
 #endif
     ( -- * Types
       Value (..)
@@ -85,7 +85,7 @@ import Data.Text.Lazy.Builder (toLazyText)
 import qualified Data.Vector as V
 import System.IO.Unsafe (unsafePerformIO)
 
-import Data.Yaml.Internal
+import Data.Yaml.Ordered.Internal
 import Text.Libyaml hiding (encode, decode, encodeFile, decodeFile)
 import qualified Text.Libyaml as Y
 

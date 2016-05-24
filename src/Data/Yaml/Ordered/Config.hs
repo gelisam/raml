@@ -8,7 +8,7 @@
 -- A yaml value of @_env:ENV_VAR:default@ will lookup the environment variable @ENV_VAR@.
 --
 -- On a historical note, this code was taken directly from the yesod web framework's configuration module.
-module Data.Yaml.Config
+module Data.Yaml.Ordered.Config
     ( -- * High-level
       loadYamlSettings
     , loadYamlSettingsArgs
@@ -40,7 +40,7 @@ import Control.Arrow ((***))
 import Control.Monad (forM)
 import Control.Exception (throwIO)
 import Data.Text.Encoding (encodeUtf8)
-import qualified Data.Yaml as Y
+import qualified Data.Yaml.Ordered as Y
 import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 

@@ -1,5 +1,5 @@
 {-# LANGUAGE RankNTypes #-}
-module Data.Yaml.Include (decodeFile, decodeFileEither) where
+module Data.Yaml.Ordered.Include (decodeFile, decodeFileEither) where
 
 import Control.Exception (throwIO)
 import Control.Monad (when)
@@ -13,7 +13,7 @@ import Data.Text.Encoding (decodeUtf8)
 import System.Directory
 import System.FilePath
 
-import Data.Yaml.Internal (ParseException(..), decodeHelper_, decodeHelper)
+import Data.Yaml.Ordered.Internal (ParseException(..), decodeHelper_, decodeHelper)
 import Text.Libyaml hiding (decodeFile)
 import qualified Text.Libyaml as Y
 
@@ -37,7 +37,7 @@ eventsFromFile = go []
 
     irrelevantEvents = [EventStreamStart, EventDocumentStart, EventDocumentEnd, EventStreamEnd]
 
--- | Like `Data.Yaml.decodeFile` but with support for relative and absolute
+-- | Like `Data.Yaml.Ordered.decodeFile` but with support for relative and absolute
 -- includes.
 --
 -- The syntax for includes follows the form:
@@ -49,7 +49,7 @@ decodeFile
     -> IO (Maybe a)
 decodeFile fp = decodeHelper (eventsFromFile fp) >>= either throwIO (return . either (const Nothing) id)
 
--- | Like `Data.Yaml.decodeFileEither` but with support for relative and
+-- | Like `Data.Yaml.Ordered.decodeFileEither` but with support for relative and
 -- absolute includes.
 --
 -- The syntax for includes follows the form:

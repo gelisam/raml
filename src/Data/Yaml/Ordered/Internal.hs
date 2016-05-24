@@ -2,7 +2,7 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE OverloadedStrings #-}
-module Data.Yaml.Internal
+module Data.Yaml.Ordered.Internal
     (
       ParseException(..)
     , prettyPrintParseException
