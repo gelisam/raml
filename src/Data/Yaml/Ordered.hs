@@ -16,7 +16,7 @@
 -- "Text.Libyaml" module instead.
 --
 -- For documentation on the @aeson@ types, functions, classes, and
--- operators, please see the @Data.Aeson@ module of the @aeson@ package.
+-- operators, please see the @Data.Aeson.Ordered@ module of the @aeson@ package.
 --
 -- Look in the examples directory of the source repository for some initial
 -- pointers on how to use this library.
@@ -66,13 +66,13 @@ import Control.Applicative((<$>))
 #endif
 import Control.Exception
 import Control.Monad.Trans.Resource (runResourceT)
-import Data.Aeson
+import Data.Aeson.Ordered
     ( Value (..), ToJSON (..), FromJSON (..), object
     , (.=) , (.:) , (.:?) , (.!=)
     , Object, Array
     )
-import Data.Aeson.Encode (encodeToTextBuilder)
-import Data.Aeson.Types (Pair, parseMaybe, parseEither, Parser)
+import Data.Aeson.Ordered.Encode (encodeToTextBuilder)
+import Data.Aeson.Ordered.Types (Pair, parseMaybe, parseEither, Parser)
 import Data.ByteString (ByteString)
 import qualified Data.Conduit as C
 import qualified Data.Conduit.List as CL

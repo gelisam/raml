@@ -5,7 +5,7 @@ import Control.Exception (throwIO)
 import Control.Monad (when)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Trans.Resource (MonadResource)
-import Data.Aeson (FromJSON)
+import Data.Aeson.Ordered (FromJSON)
 import Data.Conduit
 import qualified Data.Conduit.List as CL
 import Data.Text (unpack)

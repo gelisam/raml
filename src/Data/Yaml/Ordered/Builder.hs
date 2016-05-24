@@ -22,8 +22,8 @@ import Prelude hiding (null)
 
 import Control.Arrow (second)
 import Control.Monad.Trans.Resource (runResourceT)
-import Data.Aeson.Encode (encodeToTextBuilder)
-import Data.Aeson.Types (Value(..))
+import Data.Aeson.Ordered.Encode (encodeToTextBuilder)
+import Data.Aeson.Ordered.Types (Value(..))
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as S8
 import Data.Conduit

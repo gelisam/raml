@@ -32,7 +32,7 @@ import Data.Monoid
 #endif
 import Data.Semigroup
 import Data.List.NonEmpty (nonEmpty)
-import Data.Aeson
+import Data.Aeson.Ordered
 import qualified Data.HashMap.Strict as H
 import Data.Text (Text, pack)
 import System.Environment (getArgs, getEnvironment)

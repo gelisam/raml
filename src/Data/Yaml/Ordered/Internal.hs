@@ -23,8 +23,8 @@ import Control.Monad.IO.Class (MonadIO, liftIO)
 import Control.Monad.Trans.Class (MonadTrans, lift)
 import Control.Monad.Trans.Resource (ResourceT, runResourceT)
 import Control.Monad.Trans.State
-import Data.Aeson
-import Data.Aeson.Types hiding (parse)
+import Data.Aeson.Ordered
+import Data.Aeson.Ordered.Types hiding (parse)
 import qualified Data.Attoparsec.Text as Atto
 import Data.ByteString (ByteString)
 import Data.Char (toUpper)

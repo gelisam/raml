@@ -15,7 +15,7 @@ import Prelude hiding (null)
 #if !MIN_VERSION_base(4,8,0)
 import Control.Applicative ((<$>))
 #endif
-import Data.Aeson.Types
+import Data.Aeson.Ordered.Types
 import Data.ByteString (ByteString)
 import Data.Function (on)
 import qualified Data.HashMap.Strict as HM
