@@ -49,7 +49,6 @@ import Data.Maybe (fromMaybe)
 import Data.Monoid ((<>))
 import Data.Text (Text, pack, unpack)
 import GHC.Generics
-import qualified Data.HashMap.Strict as H
 import qualified Data.Vector as V
 import qualified Data.Vector.Mutable as VM
 
@@ -57,6 +56,8 @@ import qualified Data.Vector.Mutable as VM
 import Control.Applicative ((<*>), (<$>), pure)
 import Data.Monoid (mempty)
 #endif
+
+import qualified Data.AList as H
 
 --------------------------------------------------------------------------------
 -- Generic toJSON

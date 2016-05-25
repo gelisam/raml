@@ -35,9 +35,10 @@ import Data.Scientific (FPFormat(..), Scientific, base10Exponent)
 import Data.Text.Lazy.Builder
 import Data.Text.Lazy.Builder.Scientific (formatScientificBuilder)
 import Numeric (showHex)
-import qualified Data.HashMap.Strict as H
 import qualified Data.Text as T
 import qualified Data.Vector as V
+
+import qualified Data.AList as H
 
 -- | Encode a JSON 'Value' to a "Data.Text" 'Builder', which can be
 -- embedded efficiently in a text-based protocol.

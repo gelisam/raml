@@ -156,12 +156,12 @@ import Text.Show           ( show )
 import qualified Data.Aeson.Ordered as A
 import qualified Data.Aeson.Ordered.Encode.Builder as E
 import qualified Data.Aeson.Ordered.Encode.Functions as E
-import qualified Data.HashMap.Strict as H ( lookup, toList )
 import qualified Data.Map as M ( fromList, findWithDefault )
 import qualified Data.Text as T ( Text, pack, unpack )
 import qualified Data.Vector as V ( unsafeIndex, null, length, create, fromList )
 import qualified Data.Vector.Mutable as VM ( unsafeNew, unsafeWrite )
 
+import qualified Data.AList as H
 
 --------------------------------------------------------------------------------
 -- Convenience

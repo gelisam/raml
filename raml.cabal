@@ -37,6 +37,7 @@ library
                      , bytestring
                      , conduit
                      , containers
+                     , deepseq
                      , either
                      , extra
                      , ghc-prim

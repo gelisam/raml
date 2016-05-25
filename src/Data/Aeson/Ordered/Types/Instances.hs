@@ -103,7 +103,7 @@ import Data.Text (Text, pack, unpack)
 import Data.Time (Day, LocalTime, NominalDiffTime, TimeOfDay, UTCTime,
                   ZonedTime)
 import Data.Time.Format (FormatTime, formatTime, parseTime)
-import Data.Traversable as Tr (sequence)
+import Data.Traversable as Tr (sequence, traverse)
 import Data.Vector (Vector)
 import Data.Word (Word8, Word16, Word32, Word64)
 import Data.Version (Version, showVersion, parseVersion)
@@ -147,6 +147,8 @@ import Data.Time.Format (defaultTimeLocale)
 import System.Locale (defaultTimeLocale)
 #endif
 
+import qualified Data.AList as A
+
 parseIndexedJSON :: FromJSON a => Int -> Value -> Parser a
 parseIndexedJSON idx value = parseJSON value <?> Index idx
 
@@ -187,7 +189,7 @@ instance (ToJSON a, ToJSON b) => ToJSON (Either a b) where
     {-# INLINE toEncoding #-}
 
 instance (FromJSON a, FromJSON b) => FromJSON (Either a b) where
-    parseJSON (Object (H.toList -> [(key, value)]))
+    parseJSON (Object (A.toList -> [(key, value)]))
         | key == left  = Left  <$> parseJSON value <?> Key left
         | key == right = Right <$> parseJSON value <?> Key right
     parseJSON _        = fail $
@@ -668,7 +670,7 @@ instance FromJSON a => FromJSON (IntMap.IntMap a) where
     {-# INLINE parseJSON #-}
 
 instance (ToJSON v) => ToJSON (M.Map Text v) where
-    toJSON = Object . M.foldrWithKey (\k -> H.insert k . toJSON) H.empty
+    toJSON = Object . A.fromList . M.toList . fmap toJSON
     {-# INLINE toJSON #-}
 
     toEncoding = encodeMap M.minViewWithKey M.foldrWithKey
@@ -699,8 +701,9 @@ encodeKV k v = builder k <> B.char7 ':' <> builder v
 {-# INLINE encodeKV #-}
 
 instance (FromJSON v) => FromJSON (M.Map Text v) where
-    parseJSON = withObject "Map Text a" $
-                  fmap (H.foldrWithKey M.insert M.empty) . H.traverseWithKey (\k v -> parseJSON v <?> Key k)
+    parseJSON = withObject "Map Text a"
+              $ fmap (M.fromList . A.toList)
+              . A.traverseWithKey (\k v -> parseJSON v <?> Key k)
 
 instance (ToJSON v) => ToJSON (M.Map LT.Text v) where
     toJSON = Object . mapHashKeyVal LT.toStrict toJSON
@@ -724,37 +727,48 @@ instance (FromJSON v) => FromJSON (M.Map String v) where
     parseJSON = fmap (hashMapKey unpack) . parseJSON
     {-# INLINE parseJSON #-}
 
+instance ToJSON v => ToJSON (A.AList Text v) where
+    toJSON = Object . fmap toJSON
+    {-# INLINE toJSON #-}
+    
+    toEncoding = encodeWithKey A.foldrWithKey
+    {-# INLINE toEncoding #-}
+
+instance FromJSON v => FromJSON (A.AList Text v) where
+    parseJSON = withObject "AList Text a" $ A.traverseWithKey (\k v -> parseJSON v <?> Key k)
+    {-# INLINE parseJSON #-}
+
 instance (ToJSON v) => ToJSON (H.HashMap Text v) where
-    toJSON = Object . H.map toJSON
+    toJSON = Object . A.fromMap . fmap toJSON
     {-# INLINE toJSON #-}
 
     toEncoding = encodeWithKey H.foldrWithKey
     {-# INLINE toEncoding #-}
 
 instance (FromJSON v) => FromJSON (H.HashMap Text v) where
-    parseJSON = withObject "HashMap Text a" $ H.traverseWithKey (\k v -> parseJSON v <?> Key k)
+    parseJSON = withObject "HashMap Text a" $ fmap A.toMap . traverse parseJSON
     {-# INLINE parseJSON #-}
 
 instance (ToJSON v) => ToJSON (H.HashMap LT.Text v) where
-    toJSON = Object . mapKeyVal LT.toStrict toJSON
+    toJSON = Object . mapKeyVal LT.toStrict toJSON . A.fromMap
     {-# INLINE toJSON #-}
 
     toEncoding = encodeWithKey H.foldrWithKey
     {-# INLINE toEncoding #-}
 
 instance (FromJSON v) => FromJSON (H.HashMap LT.Text v) where
-    parseJSON = fmap (mapKey LT.fromStrict) . parseJSON
+    parseJSON = fmap (A.toMap . mapKey LT.fromStrict) . parseJSON
     {-# INLINE parseJSON #-}
 
 instance (ToJSON v) => ToJSON (H.HashMap String v) where
-    toJSON = Object . mapKeyVal pack toJSON
+    toJSON = Object . A.mapKeyVal pack toJSON . A.fromMap
     {-# INLINE toJSON #-}
 
     toEncoding = encodeWithKey H.foldrWithKey
     {-# INLINE toEncoding #-}
 
 instance (FromJSON v) => FromJSON (H.HashMap String v) where
-    parseJSON = fmap (mapKey unpack) . parseJSON
+    parseJSON = fmap (A.toMap. mapKey unpack) . parseJSON
     {-# INLINE parseJSON #-}
 
 instance (ToJSON v) => ToJSON (Tree.Tree v) where
@@ -1667,7 +1681,7 @@ ifromJSON = iparse parseJSON
 -- in an object for it to be valid.  If the key and value are
 -- optional, use '.:?' instead.
 (.:) :: (FromJSON a) => Object -> Text -> Parser a
-obj .: key = case H.lookup key obj of
+obj .: key = case A.lookup key obj of
                Nothing -> fail $ "key " ++ show key ++ " not present"
                Just v  -> modifyFailure addKeyName
                         $ parseJSON v <?> Key key
@@ -1683,7 +1697,7 @@ obj .: key = case H.lookup key obj of
 -- from an object without affecting its validity.  If the key and
 -- value are mandatory, use '.:' instead.
 (.:?) :: (FromJSON a) => Object -> Text -> Parser (Maybe a)
-obj .:? key = case H.lookup key obj of
+obj .:? key = case A.lookup key obj of
                Nothing -> pure Nothing
                Just v  -> modifyFailure addKeyName
                         $ parseJSON v <?> Key key
@@ -1694,7 +1708,7 @@ obj .:? key = case H.lookup key obj of
 -- | Like '.:?', but the resulting parser will fail,
 -- if the key is present but is 'Null'.
 (.:!) :: (FromJSON a) => Object -> Text -> Parser (Maybe a)
-obj .:! key = case H.lookup key obj of
+obj .:! key = case A.lookup key obj of
                Nothing -> pure Nothing
                Just v  -> modifyFailure addKeyName
                         $ Just <$> parseJSON v <?> Key key

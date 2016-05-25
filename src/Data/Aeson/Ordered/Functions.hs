@@ -14,29 +14,30 @@ module Data.Aeson.Ordered.Functions
     , mapKey
     ) where
 
+import Control.Arrow (first, (***))
 import Data.Hashable (Hashable)
-import qualified Data.HashMap.Strict as H
+import qualified Data.AList as H
 import qualified Data.Map as M
 
--- | Transform a 'M.Map' into a 'H.HashMap' while transforming the keys.
+-- | Transform a 'M.Map' into a 'H.AList' while transforming the keys.
 mapHashKeyVal :: (Eq k2, Hashable k2) => (k1 -> k2) -> (v1 -> v2)
-              -> M.Map k1 v1 -> H.HashMap k2 v2
-mapHashKeyVal fk kv = M.foldrWithKey (\k v -> H.insert (fk k) (kv v)) H.empty
+              -> M.Map k1 v1 -> H.AList k2 v2
+mapHashKeyVal fk fv = H.fromList . map (fk *** fv) . M.toList
 {-# INLINE mapHashKeyVal #-}
 
--- | Transform a 'M.Map' into a 'H.HashMap' while transforming the keys.
-hashMapKey :: (Ord k2) => (k1 -> k2)
-           -> H.HashMap k1 v -> M.Map k2 v
-hashMapKey kv = H.foldrWithKey (M.insert . kv) M.empty
+-- | Transform a 'M.Map' into a 'H.AList' while transforming the keys.
+hashMapKey :: (Eq k1, Hashable k1, Ord k2) => (k1 -> k2)
+           -> H.AList k1 v -> M.Map k2 v
+hashMapKey fk = M.fromList . map (first fk) . H.toList
 {-# INLINE hashMapKey #-}
 
--- | Transform the keys and values of a 'H.HashMap'.
+-- | Transform the keys and values of a 'H.AList'.
 mapKeyVal :: (Eq k2, Hashable k2) => (k1 -> k2) -> (v1 -> v2)
-          -> H.HashMap k1 v1 -> H.HashMap k2 v2
-mapKeyVal fk kv = H.foldrWithKey (\k v -> H.insert (fk k) (kv v)) H.empty
+          -> H.AList k1 v1 -> H.AList k2 v2
+mapKeyVal = H.mapKeyVal
 {-# INLINE mapKeyVal #-}
 
--- | Transform the keys of a 'H.HashMap'.
-mapKey :: (Eq k2, Hashable k2) => (k1 -> k2) -> H.HashMap k1 v -> H.HashMap k2 v
+-- | Transform the keys of a 'H.AList'.
+mapKey :: (Eq k2, Hashable k2) => (k1 -> k2) -> H.AList k1 v -> H.AList k2 v
 mapKey fk = mapKeyVal fk id
 {-# INLINE mapKey #-}

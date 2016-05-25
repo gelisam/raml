@@ -56,7 +56,6 @@ import qualified Data.ByteString as B
 import qualified Data.ByteString.Internal as B
 import qualified Data.ByteString.Lazy as L
 import qualified Data.ByteString.Unsafe as B
-import qualified Data.HashMap.Strict as H
 
 #if !MIN_VERSION_base(4,8,0)
 import Control.Applicative ((*>), (<$>), (<*), pure)
@@ -66,6 +65,8 @@ import Control.Applicative ((*>), (<$>), (<*), pure)
 import GHC.Base (Int#, (==#), isTrue#, orI#, word2Int#)
 import GHC.Word (Word8(W8#))
 #endif
+
+import qualified Data.AList as H
 
 #define BACKSLASH 92
 #define CLOSE_CURLY 125
@@ -120,7 +121,7 @@ object_' = {-# SCC "object_'" #-} do
     !s <- jstring
     return s
 
-objectValues :: Parser Text -> Parser Value -> Parser (H.HashMap Text Value)
+objectValues :: Parser Text -> Parser Value -> Parser (H.AList Text Value)
 objectValues str val = do
   skipSpace
   w <- A.peekWord8'

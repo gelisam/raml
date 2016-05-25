@@ -1,17 +1,21 @@
-{-# LANGUAGE BangPatterns, DeriveFunctor, DeriveFoldable, DeriveTraversable, RecordWildCards #-}
+{-# LANGUAGE BangPatterns, DeriveAnyClass, DeriveDataTypeable, DeriveGeneric, DeriveFunctor, DeriveFoldable, DeriveTraversable, GeneralizedNewtypeDeriving, RecordWildCards #-}
 module Data.AList
   ( AList
   , empty, singleton
   , fromMap, toMap
   , fromList, toList
-  , mapWithKey
+  , mapKeyVal, mapWithKey, foldrWithKey, traverseWithKey
   , null, member, lookup, (!)
   , insert, union
   ) where
 
 import Prelude hiding (null, lookup)
 
-import qualified Data.Foldable as Foldable (toList)
+import Control.Arrow ((***))
+import Control.DeepSeq (NFData(..))
+import GHC.Generics (Generic)
+import           Data.Data
+import qualified Data.Foldable as Foldable
 import           Data.Hashable
 import           Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as Map
@@ -22,7 +26,13 @@ import qualified Data.Sequence as Seq
 data AList k a = AList
   { keys :: !(Seq k)
   , values :: !(HashMap k a)
-  } deriving (Show, Eq, Functor, Foldable, Traversable)
+  } deriving (Data, Eq, Foldable, Functor, Generic, NFData, Read, Show, Traversable)
+
+instance (Hashable k, Hashable a) => Hashable (AList k a) where
+  hashWithSalt salt (AList {..}) = salt
+                    `hashWithSalt` Foldable.toList keys
+                    `hashWithSalt` values
+
 
 empty :: AList k a
 empty = AList Seq.empty Map.empty
@@ -56,10 +66,28 @@ toList (AList {..}) = map go ks
     go k = (k, values Map.! k)
 
 
+mapKeyVal :: (Eq k2, Hashable k2)
+          => (k1 -> k2)
+          -> (a1 -> a2)
+          -> AList k1 a1 -> AList k2 a2
+mapKeyVal f g (AList {..}) = AList (fmap f keys) (mapG values)
+  where
+    mapG = Map.fromList . map (f *** g) . Map.toList
+
 mapWithKey :: (k -> a -> b)
            -> AList k a
            -> AList k b
 mapWithKey = modifyMap . Map.mapWithKey
+
+foldrWithKey :: (Eq k, Hashable k)
+             => (k -> a -> s -> s)
+             -> s -> AList k a -> s
+foldrWithKey f s0 (AList {..}) = Foldable.foldr (\k -> f k (values Map.! k)) s0 keys
+
+traverseWithKey :: Applicative f
+                => (k -> a -> f b)
+                -> AList k a -> f (AList k b)
+traverseWithKey f (AList {..}) = AList keys <$> Map.traverseWithKey f values
 
 
 null :: AList k a -> Bool
