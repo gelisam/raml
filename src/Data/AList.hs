@@ -1,12 +1,13 @@
-{-# LANGUAGE BangPatterns, DeriveAnyClass, DeriveDataTypeable, DeriveGeneric, DeriveFunctor, DeriveFoldable, DeriveTraversable, GeneralizedNewtypeDeriving, RecordWildCards #-}
+{-# LANGUAGE BangPatterns, DeriveAnyClass, DeriveDataTypeable, DeriveGeneric, DeriveFunctor, DeriveFoldable, DeriveTraversable, GeneralizedNewtypeDeriving, RecordWildCards, ScopedTypeVariables #-}
 module Data.AList
   ( AList
   , empty, singleton
   , fromMap, toMap
   , fromList, toList
-  , mapKeyVal, mapWithKey, foldrWithKey, traverseWithKey
-  , null, member, lookup, (!)
-  , insert, union, unionWith
+  , mapMaybe, mapKey, mapKeyVal, mapWithKey, foldrWithKey, traverseWithKey
+  , null, size
+  , member, lookup, (!)
+  , insert, union, unionWith, unionWithKey
   ) where
 
 import Prelude hiding (null, lookup)
@@ -19,6 +20,7 @@ import qualified Data.Foldable as Foldable
 import           Data.Hashable
 import           Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as Map
+import qualified Data.Maybe as Maybe
 import           Data.Sequence (Seq, (|>), (><))
 import qualified Data.Sequence as Seq
 
@@ -66,6 +68,20 @@ toList (AList {..}) = map go ks
     go k = (k, values Map.! k)
 
 
+mapMaybe :: forall k a b. (Eq k, Hashable k)
+         => (a -> Maybe b)
+         -> AList k a -> AList k b
+mapMaybe f (AList {..}) = AList (mapSeq keys)
+                                (Map.mapMaybe f values)
+  where
+    mapSeq :: Seq k -> Seq k
+    mapSeq = Seq.filter (\k -> Maybe.isJust (f (values Map.! k)))
+
+mapKey :: (Eq k2, Hashable k2)
+       => (k1 -> k2)
+       -> AList k1 a -> AList k2 a
+mapKey f = mapKeyVal f id
+
 mapKeyVal :: (Eq k2, Hashable k2)
           => (k1 -> k2)
           -> (a1 -> a2)
@@ -93,14 +109,18 @@ traverseWithKey f (AList {..}) = AList keys <$> Map.traverseWithKey f values
 null :: AList k a -> Bool
 null = Map.null . values
 
+size :: AList k a -> Int
+size = Map.size . values
+
+
 member :: (Eq k, Hashable k) => k -> AList k a -> Bool
 member k = Map.member k . values
 
 lookup :: (Eq k, Hashable k) => k -> AList k a -> Maybe a
 lookup k = Map.lookup k . values
 
-(!) :: (Eq k, Hashable k) => k -> AList k a -> a
-(!) k = (Map.! k) . values
+(!) :: (Eq k, Hashable k) => AList k a -> k -> a
+(!) (AList {..}) k = values Map.! k
 
 
 insert :: (Eq k, Hashable k) => k -> a -> AList k a -> AList k a
@@ -117,8 +137,13 @@ union = unionWith const
 unionWith :: (Eq k, Hashable k)
           => (a -> a -> a)
           -> AList k a -> AList k a -> AList k a
-unionWith f xs1 xs2 = AList (keys xs1 >< ks2)
-                            (Map.unionWith f (values xs1) (values xs2))
+unionWith f = unionWithKey (const f)
+
+unionWithKey :: (Eq k, Hashable k)
+             => (k -> a -> a -> a)
+             -> AList k a -> AList k a -> AList k a
+unionWithKey f xs1 xs2 = AList (keys xs1 >< ks2)
+                               (Map.unionWithKey f (values xs1) (values xs2))
   where
     notDuplicate = not . (`member` xs1)
     ks2 = Seq.filter notDuplicate (keys xs2)

@@ -4,6 +4,8 @@ module Data.Empty where
 
 import Prelude hiding (null)
 
+import           Data.AList (AList)
+import qualified Data.AList as AList
 import           Data.Map (Map)
 import qualified Data.Map as Map
 import           Data.Set (Set)
@@ -23,6 +25,9 @@ instance Empty [a] where
 
 instance Empty (Map k a) where
   null = Map.null
+
+instance Empty (AList k a) where
+  null = AList.null
 
 instance Empty (Set a) where
   null = Set.null

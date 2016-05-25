@@ -738,6 +738,28 @@ instance FromJSON v => FromJSON (A.AList Text v) where
     parseJSON = withObject "AList Text a" $ A.traverseWithKey (\k v -> parseJSON v <?> Key k)
     {-# INLINE parseJSON #-}
 
+instance ToJSON v => ToJSON (A.AList LT.Text v) where
+    toJSON = Object . A.mapKeyVal LT.toStrict toJSON
+    {-# INLINE toJSON #-}
+    
+    toEncoding = encodeWithKey A.foldrWithKey
+    {-# INLINE toEncoding #-}
+
+instance FromJSON v => FromJSON (A.AList LT.Text v) where
+    parseJSON = fmap (A.mapKey LT.fromStrict) . parseJSON
+    {-# INLINE parseJSON #-}
+
+instance ToJSON v => ToJSON (A.AList String v) where
+    toJSON = Object . A.mapKeyVal pack toJSON
+    {-# INLINE toJSON #-}
+    
+    toEncoding = encodeWithKey A.foldrWithKey
+    {-# INLINE toEncoding #-}
+
+instance FromJSON v => FromJSON (A.AList String v) where
+    parseJSON = fmap (A.mapKey unpack) . parseJSON
+    {-# INLINE parseJSON #-}
+
 instance (ToJSON v) => ToJSON (H.HashMap Text v) where
     toJSON = Object . A.fromMap . fmap toJSON
     {-# INLINE toJSON #-}
@@ -768,7 +790,7 @@ instance (ToJSON v) => ToJSON (H.HashMap String v) where
     {-# INLINE toEncoding #-}
 
 instance (FromJSON v) => FromJSON (H.HashMap String v) where
-    parseJSON = fmap (A.toMap. mapKey unpack) . parseJSON
+    parseJSON = fmap (A.toMap . mapKey unpack) . parseJSON
     {-# INLINE parseJSON #-}
 
 instance (ToJSON v) => ToJSON (Tree.Tree v) where
