@@ -1,11 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Raml.Normalizer (TypeExpr(..), module Raml.Normalizer) where
 
-import           Data.Map (Map)
+import           Data.AList (AList)
 import           Data.Maybe
-import           Data.Yaml (ToJSON(..))
+import           Data.Yaml.Ordered (ToJSON(..))
 
-import Data.Yaml.MyExtra
+import Data.Yaml.Ordered.MyExtra
 import Raml.Common
 import           Raml.Parser (TypeExpr(..), ParseTree(..))
 import qualified Raml.Parser as Parser
@@ -13,13 +13,13 @@ import qualified Raml.Parser as Parser
 
 data TypeProps = TypeProps
   { parentType :: TypeExpr
-  , properties :: Maybe (Map PropertyName TypeProps)
+  , properties :: Maybe (AList PropertyName TypeProps)
   , discriminator :: Maybe Discriminator
   , stringPattern :: Maybe Regexp
   } deriving (Show, Eq)
 
 
-type SymbolTable = Map TypeName TypeProps
+type SymbolTable = AList TypeName TypeProps
 
 newtype NormalizedTree = NormalizedTree
   { unNormalizedTree :: SymbolTable
@@ -74,17 +74,23 @@ normalizeTypeProps p = TypeProps
 -- >>> r <- normalize <$> parse <$> readYaml "tests/sample.in"
 -- >>> printAsYaml r
 -- types:
---   BooleanType:
+--   Alternative:
+--     type: object
+--     discriminator: constructor
+--   StringType:
+--     type: Alternative
+--   NumberType:
 --     type: Alternative
 --   DateType:
 --     type: Alternative
 --     properties:
 --       dateFormat:
---         pattern: ! '[YMD]+[-\.][YMD]+[-\.\/][YMD]+'
 --         type: string
---   Alternative:
---     discriminator: constructor
---     type: object
+--         pattern: ! '[YMD]+[-\.][YMD]+[-\.\/][YMD]+'
+--   BooleanType:
+--     type: Alternative
+--   DataType:
+--     type: (StringType | NumberType | DateType | BooleanType)
 --   Field:
 --     type: object
 --     properties:
@@ -92,11 +98,5 @@ normalizeTypeProps p = TypeProps
 --         type: string
 --       dataType:
 --         type: DataType
---   NumberType:
---     type: Alternative
---   StringType:
---     type: Alternative
---   DataType:
---     type: (StringType | NumberType | DateType | BooleanType)
 normalize :: ParseTree -> NormalizedTree
 normalize = NormalizedTree . fmap (normalizePropertyType . Just) . unParseTree

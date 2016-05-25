@@ -1,13 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Raml.Analyzer where
 
-import           Data.Map (Map)
-import qualified Data.Map as Map
-import           Data.Yaml (ToJSON(..))
-import qualified Data.Yaml as Yaml
+import           Data.AList (AList)
+import qualified Data.AList as AList
+import           Data.Yaml.Ordered (ToJSON(..))
+import qualified Data.Yaml.Ordered as Yaml
 import Text.Printf
 
-import Data.Yaml.MyExtra
+import Data.Yaml.Ordered.MyExtra
 import Raml.Common
 import           Raml.Classifier (ClassifiedTree(..))
 import qualified Raml.Classifier as Classifier
@@ -59,18 +59,18 @@ data Field
 
 
 data BranchProps = BranchProps
-  { branchFields :: Map PropertyName Field
+  { branchFields :: AList PropertyName Field
   } deriving (Show, Eq)
 
 data DummyProps = DummyProps
   deriving (Show, Eq)
 
 data NamedSumProps = NamedSumProps
-  { sumBranches :: Map BranchName BranchProps
+  { sumBranches :: AList BranchName BranchProps
   } deriving (Show, Eq)
 
 data NamedProductProps = NamedProductProps
-  { productFields :: Map PropertyName Field
+  { productFields :: AList PropertyName Field
   } deriving (Show, Eq)
 
 data TypeProps
@@ -83,10 +83,10 @@ data Purpose
   = Dummy
   | Branch BranchName BranchProps
   | TopLevelType TypeProps
-type SymbolTable = Map TypeName Purpose
+type SymbolTable = AList TypeName Purpose
 
 data AnalyzedTree = AnalyzedTree
-  { unAnalyzedTree :: Map TypeName TypeProps
+  { unAnalyzedTree :: AList TypeName TypeProps
   } deriving (Show, Eq)
 
 
@@ -150,7 +150,7 @@ analyzeField (Classifier.CustomField (Classifier.StringTypeProps stringProps)) =
 analyzeField (Classifier.CustomField (Classifier.UnionTypeProps unionProps)) =
     analyzeUnionField unionProps
 
-analyzeNamedProduct :: Map PropertyName Classifier.FieldProps -> TypeProps
+analyzeNamedProduct :: AList PropertyName Classifier.FieldProps -> TypeProps
 analyzeNamedProduct = NamedProductTypeProps
                     . NamedProductProps
                     . fmap analyzeField
@@ -164,7 +164,7 @@ analyzeObjectBranch symbolTable = go
     go :: Classifier.ObjectType -> Maybe (BranchName, BranchProps)
     go Classifier.Object = Nothing
     go (Classifier.ObjectRef typeName) =
-        case symbolTable Map.! typeName of
+        case symbolTable AList.! typeName of
           Branch branchName branchProps -> Just (branchName, branchProps)
           _ -> Nothing
 
@@ -189,7 +189,7 @@ analyzeObjectProps :: UnionUsage
                    -> Purpose
 analyzeObjectProps unionUsage symbolTable typeName
                    (Classifier.ObjectProps parent props discr) =
-    case (unionUsage ! typeName, Map.size props, parent, discr) of
+    case (unionUsage ! typeName, AList.size props, parent, discr) of
       (1,_,_,_) ->
         Branch typeName $ BranchProps
                         $ fmap analyzeField props
@@ -198,7 +198,7 @@ analyzeObjectProps unionUsage symbolTable typeName
       (_,_,Classifier.Object,Nothing) ->
         TopLevelType $ analyzeNamedProduct props
       (_,_,Classifier.ObjectRef parentName,Nothing) ->
-        case symbolTable Map.! parentName of
+        case symbolTable AList.! parentName of
           Dummy ->  -- Dummy parent, ignore
             TopLevelType $ analyzeNamedProduct props
           _ ->
@@ -223,7 +223,7 @@ analyzeUnionProps symbolTable (Classifier.UnionProps oldBranches) =
                        (show oldBranches)
       Just newBranches ->
         NamedSumTypeProps $ NamedSumProps
-                          $ Map.fromList
+                          $ AList.fromList
                           $ newBranches
 
 analyzeTypeProps :: UnionUsage
@@ -249,21 +249,21 @@ analyzeTypeProps unionUsage symbolTable typeName = go
 -- >>> r <- analyze <$> Classifier.classify <$> normalize <$> parse <$> readYaml "tests/sample.in"
 -- >>> printAsYaml r
 -- types:
+--   DataType:
+--     StringType: {}
+--     NumberType: {}
+--     DateType:
+--       properties:
+--         dateFormat:
+--           type: string
+--           pattern: ! '[YMD]+[-\.][YMD]+[-\.\/][YMD]+'
+--     BooleanType: {}
 --   Field:
 --     properties:
 --       name: string
 --       dataType: DataType
---   DataType:
---     BooleanType: {}
---     DateType:
---       properties:
---         dateFormat:
---           pattern: ! '[YMD]+[-\.][YMD]+[-\.\/][YMD]+'
---           type: string
---     NumberType: {}
---     StringType: {}
 analyze :: ClassifiedTree -> AnalyzedTree
-analyze = AnalyzedTree . Map.mapMaybe topLevelOnly . go . unClassifiedTree
+analyze = AnalyzedTree . AList.mapMaybe topLevelOnly . go . unClassifiedTree
   where
     topLevelOnly :: Purpose -> Maybe TypeProps
     topLevelOnly (TopLevelType typeProps) = Just typeProps
@@ -276,7 +276,7 @@ analyze = AnalyzedTree . Map.mapMaybe topLevelOnly . go . unClassifiedTree
         unionUsage = countUnionUsage oldSymbolTable
         
         newSymbolTable :: SymbolTable
-        newSymbolTable = Map.mapWithKey f oldSymbolTable
+        newSymbolTable = AList.mapWithKey f oldSymbolTable
         
         f :: TypeName
           -> Classifier.TypeProps

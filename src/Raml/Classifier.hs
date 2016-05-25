@@ -2,12 +2,12 @@
 module Raml.Classifier where
 
 import Data.Maybe
-import           Data.Map (Map, (!))
-import qualified Data.Map as Map
-import           Data.Yaml (ToJSON(..))
+import           Data.AList (AList, (!))
+import qualified Data.AList as AList
+import           Data.Yaml.Ordered (ToJSON(..))
 import Text.Printf
 
-import Data.Yaml.MyExtra
+import Data.Yaml.Ordered.MyExtra
 import Raml.Common
 import           Raml.Normalizer (NormalizedTree(..))
 import qualified Raml.Normalizer as Normalizer
@@ -47,7 +47,7 @@ data UnionBranch
 
 data ObjectProps = ObjectProps
   { parentObjectType :: ObjectType
-  , properties :: Map PropertyName FieldProps
+  , properties :: AList PropertyName FieldProps
   , objectDiscriminator :: Maybe Discriminator
   } deriving (Show, Eq)
 
@@ -67,10 +67,10 @@ data TypeProps
   deriving (Show, Eq)
 
 
-type SymbolTable = Map TypeName TypeProps
+type SymbolTable = AList TypeName TypeProps
 
 newtype ClassifiedTree = ClassifiedTree
-  { unClassifiedTree :: Map TypeName TypeProps
+  { unClassifiedTree :: AList TypeName TypeProps
   } deriving (Show, Eq)
 
 
@@ -124,9 +124,9 @@ instance ToJSON ClassifiedTree where
 
 
 classifyProperties :: SymbolTable
-                   -> Maybe (Map PropertyName Normalizer.TypeProps)
-                   -> Map PropertyName FieldProps
-classifyProperties symbolTable = fromMaybe Map.empty
+                   -> Maybe (AList PropertyName Normalizer.TypeProps)
+                   -> AList PropertyName FieldProps
+classifyProperties symbolTable = fromMaybe AList.empty
                                . (fmap . fmap) go
   where
     go :: Normalizer.TypeProps -> FieldProps
@@ -140,10 +140,10 @@ classifyProperties symbolTable = fromMaybe Map.empty
     classifyUnionExpr = CustomField . UnionTypeProps
     
     classifyCustomObject :: ObjectType
-                         -> Map PropertyName FieldProps
+                         -> AList PropertyName FieldProps
                          -> Maybe Discriminator
                          -> FieldProps
-    classifyCustomObject (ObjectRef typeName) props Nothing | Map.null props =
+    classifyCustomObject (ObjectRef typeName) props Nothing | AList.null props =
         RegularField typeName
     classifyCustomObject objectType props discr =
         CustomField $ ObjectTypeProps
@@ -197,7 +197,7 @@ classifyTypeExpr symbolTable = go
 
 
 classifyTypeProps :: (UnionProps -> a)
-                  -> (ObjectType -> Map PropertyName FieldProps
+                  -> (ObjectType -> AList PropertyName FieldProps
                                  -> Maybe Discriminator
                                  -> a)
                   -> (StringType -> Maybe Regexp
@@ -266,7 +266,7 @@ classifyTopLevelTypeProps = classifyTypeProps classifyUnionExpr
     classifyUnionExpr = UnionTypeProps
     
     classifyCustomObject :: ObjectType
-                         -> Map PropertyName FieldProps
+                         -> AList PropertyName FieldProps
                          -> Maybe Discriminator
                          -> TypeProps
     classifyCustomObject objectType props discr =
@@ -295,29 +295,23 @@ classifyTopLevelTypeProps = classifyTypeProps classifyUnionExpr
 -- >>> r <- classify <$> normalize <$> parse <$> readYaml "tests/sample.in"
 -- >>> printAsYaml r
 -- types:
---   BooleanType:
+--   Alternative:
+--     type: object
+--     properties: {}
+--     discriminator: constructor
+--   StringType:
+--     type: Alternative
+--     properties: {}
+--   NumberType:
 --     type: Alternative
 --     properties: {}
 --   DateType:
 --     type: Alternative
 --     properties:
 --       dateFormat:
+--         type: string
 --         pattern: ! '[YMD]+[-\.][YMD]+[-\.\/][YMD]+'
---         type: string
---   Alternative:
---     discriminator: constructor
---     type: object
---     properties: {}
---   Field:
---     type: object
---     properties:
---       name:
---         type: string
---       dataType: DataType
---   NumberType:
---     type: Alternative
---     properties: {}
---   StringType:
+--   BooleanType:
 --     type: Alternative
 --     properties: {}
 --   DataType:
@@ -325,6 +319,12 @@ classifyTopLevelTypeProps = classifyTypeProps classifyUnionExpr
 --   - NumberType
 --   - DateType
 --   - BooleanType
+--   Field:
+--     type: object
+--     properties:
+--       name:
+--         type: string
+--       dataType: DataType
 classify :: NormalizedTree -> ClassifiedTree
 classify = ClassifiedTree . go . unNormalizedTree
   where

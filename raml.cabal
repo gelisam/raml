@@ -15,10 +15,11 @@ build-type:          Simple
 cabal-version:       >=1.10
 
 library
-  exposed-modules:     Data.Empty
+  exposed-modules:     Data.AList
+                     , Data.Empty
                      , Data.IndentedCode
                      , Data.String.MyExtra
-                     , Data.Yaml.MyExtra
+                     , Data.Yaml.Ordered.MyExtra
                      , Raml.Common
                      , Raml.Parser
                      , Raml.Normalizer
@@ -32,13 +33,27 @@ library
   -- other-modules:       
   -- other-extensions:    
   build-depends:       base >=4.8 && <4.9
-                     , aeson
+                     , attoparsec
                      , bytestring
+                     , conduit
                      , containers
+                     , deepseq
+                     , dlist
                      , either
+                     , enclosed-exceptions
                      , extra
+                     , fail
+                     , ghc-prim
+                     , hashable
+                     , resourcet
+                     , scientific
+                     , semigroups
+                     , tagged
                      , text
+                     , template-haskell
+                     , time
                      , transformers
+                     , unordered-containers
                      , vector
                      , yaml
   hs-source-dirs:      src

@@ -2,14 +2,14 @@
 module Raml.Generator where
 
 import Data.Maybe
-import           Data.Map (Map)
-import qualified Data.Map as Map
-import           Data.Yaml (ToJSON(..))
+import           Data.AList (AList)
+import qualified Data.AList as AList
+import           Data.Yaml.Ordered (ToJSON(..))
 import Text.Printf
 
 import Data.Empty
 import Data.IndentedCode
-import Data.Yaml.MyExtra
+import Data.Yaml.Ordered.MyExtra
 import Raml.Common
 import Raml.ScalaName
 import           Raml.Analyzer (AnalyzedTree(..))
@@ -191,8 +191,8 @@ generateProductClass typeName (Analyzer.NamedProductProps fields) =
     $ CaseClass
     { caseClassName = typeName
     , caseClassParent = Nothing
-    , parameters = map (uncurry generateField) (Map.toList fields)
-    , requirements = mapMaybe (uncurry go) (Map.toList fields)
+    , parameters = map (uncurry generateField) (AList.toList fields)
+    , requirements = mapMaybe (uncurry go) (AList.toList fields)
     }
     ]
   where
@@ -210,15 +210,15 @@ accompanyProductClass typeName (Analyzer.NamedProductProps fields) =
 generateCaseClass :: CompanionNamer
                   -> TypeName
                   -> Maybe TypeName
-                  -> Map PropertyName Analyzer.Field
+                  -> AList PropertyName Analyzer.Field
                   -> [GeneratedCode]
 generateCaseClass companionNamer typeName parentName fields =
     [ GeneratedCaseClass
     $ CaseClass
     { caseClassName = typeName
     , caseClassParent = parentName
-    , parameters = map (uncurry generateField) (Map.toList fields)
-    , requirements = mapMaybe (uncurry go) (Map.toList fields)
+    , parameters = map (uncurry generateField) (AList.toList fields)
+    , requirements = mapMaybe (uncurry go) (AList.toList fields)
     }
     ]
   where
@@ -227,13 +227,13 @@ generateCaseClass companionNamer typeName parentName fields =
 
 accompanyCaseClass :: CompanionNamer
                    -> TypeName
-                   -> Map PropertyName Analyzer.Field
+                   -> AList PropertyName Analyzer.Field
                    -> [GeneratedCode]
 accompanyCaseClass companionNamer typeName fields =
     [ GeneratedCompanionObject
     $ CompanionObject
     { companionName = typeName
-    , staticVals = foldMap (uncurry go) (Map.toList fields)
+    , staticVals = foldMap (uncurry go) (AList.toList fields)
     }
     ]
   where
@@ -257,12 +257,12 @@ generateBranches typeName (Analyzer.NamedSumProps branches) =
     [ GeneratedTrait
     $ Trait typeName
     ] ++
-    foldMap (uncurry (generateBranch typeName)) (Map.toList branches)
+    foldMap (uncurry (generateBranch typeName)) (AList.toList branches)
 
 accompanyBranches :: TypeName -> Analyzer.NamedSumProps -> [GeneratedCode]
 accompanyBranches typeName (Analyzer.NamedSumProps branches) =
-    accompanyCaseClass unqualifiedCompanionNamer typeName Map.empty ++
-    foldMap (uncurry accompanyBranch) (Map.toList branches)
+    accompanyCaseClass unqualifiedCompanionNamer typeName AList.empty ++
+    foldMap (uncurry accompanyBranch) (AList.toList branches)
 
 
 generateNamedSum :: TypeName -> Analyzer.NamedSumProps -> [[GeneratedCode]]
@@ -294,53 +294,53 @@ generateTypeProps typeName (Analyzer.NamedProductTypeProps namedProduct) =
 -- - - - trait:
 --         name: DataType
 --     - case_class:
+--         name: StringType
 --         parent: DataType
---         name: BooleanType
 --     - case_class:
+--         name: NumberType
 --         parent: DataType
+--     - case_class:
+--         name: DateType
+--         parent: DataType
+--         parameters:
+--         - field:
+--             name: dateFormat
+--             type: String
 --         requirements:
 --         - - dateFormat match {
 --           - - case DateType.DateFormatPattern() => true
 --             - case _ => false
 --           - ! '}'
---         name: DateType
---         parameters:
---         - field:
---             name: dateFormat
---             type: String
 --     - case_class:
+--         name: BooleanType
 --         parent: DataType
---         name: NumberType
---     - case_class:
---         parent: DataType
---         name: StringType
 --   - - companion_object:
 --         name: DataType
 --     - companion_object:
---         name: BooleanType
+--         name: StringType
+--     - companion_object:
+--         name: NumberType
 --     - companion_object:
 --         name: DateType
 --         vals:
 --         - val:
---             value: ! '"[YMD]+[-\\.][YMD]+[-\\.\\/][YMD]+".r'
 --             name: DateFormatPattern
+--             value: ! '"[YMD]+[-\\.][YMD]+[-\\.\\/][YMD]+".r'
 --     - companion_object:
---         name: NumberType
---     - companion_object:
---         name: StringType
+--         name: BooleanType
 -- - - - case_class:
 --         name: Field
 --         parameters:
 --         - field:
---             name: dataType
---             type: DataType
---         - field:
 --             name: name
 --             type: String
+--         - field:
+--             name: dataType
+--             type: DataType
 --   - - companion_object:
 --         name: Field
 generate :: AnalyzedTree -> GeneratedTree
 generate = GeneratedTree
          . map (uncurry generateTypeProps)
-         . Map.toList
+         . AList.toList
          . unAnalyzedTree

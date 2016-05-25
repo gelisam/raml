@@ -1,15 +1,15 @@
 {-# LANGUAGE OverloadedStrings, PatternSynonyms, ViewPatterns #-}
 module Raml.Parser where
 
-import qualified Data.Aeson as Json
+import qualified Data.Aeson.Ordered as Json
 import qualified Data.List as List
-import           Data.Map (Map)
-import           Data.Yaml (FromJSON(..), ToJSON(..), (.:), (.:?), (.=))
-import qualified Data.Yaml as Yaml
+import           Data.AList (AList)
+import           Data.Yaml.Ordered (FromJSON(..), ToJSON(..), (.:), (.:?), (.=))
+import qualified Data.Yaml.Ordered as Yaml
 import Extra
 import Text.Printf
 
-import Data.Yaml.MyExtra
+import Data.Yaml.Ordered.MyExtra
 import Raml.Common
 
 
@@ -22,13 +22,13 @@ data TypeExpr
 
 data TypeProps = TypeProps
   { type_ :: Maybe TypeExpr -- either the property's type or the parent type
-  , properties :: Maybe (Map PropertyName (Maybe (OrElse TypeExpr TypeProps)))
+  , properties :: Maybe (AList PropertyName (Maybe (OrElse TypeExpr TypeProps)))
   , discriminator :: Maybe Discriminator
   , stringPattern :: Maybe Regexp
   } deriving (Show, Eq)
 
 
-type SymbolTable = Map TypeName (OrElse TypeExpr TypeProps)
+type SymbolTable = AList TypeName (OrElse TypeExpr TypeProps)
 
 newtype ParseTree = ParseTree
   { unParseTree :: SymbolTable
@@ -84,23 +84,23 @@ instance ToJSON ParseTree where
 -- >>> r <- parse <$> readYaml "tests/sample.in"
 -- >>> printAsYaml r
 -- types:
---   BooleanType: Alternative
+--   Alternative:
+--     type: object
+--     discriminator: constructor
+--   StringType: Alternative
+--   NumberType: Alternative
 --   DateType:
 --     type: Alternative
 --     properties:
 --       dateFormat:
---         pattern: ! '[YMD]+[-\.][YMD]+[-\.\/][YMD]+'
 --         type: string
---   Alternative:
---     discriminator: constructor
---     type: object
+--         pattern: ! '[YMD]+[-\.][YMD]+[-\.\/][YMD]+'
+--   BooleanType: Alternative
+--   DataType: (StringType | NumberType | DateType | BooleanType)
 --   Field:
 --     properties:
 --       name: null
 --       dataType: DataType
---   NumberType: Alternative
---   StringType: Alternative
---   DataType: (StringType | NumberType | DateType | BooleanType)
 parse :: Yaml.Value -> ParseTree
 parse v = case Json.fromJSON v of
     Json.Error err -> error err

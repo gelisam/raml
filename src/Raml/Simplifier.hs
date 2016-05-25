@@ -23,7 +23,7 @@ instance Simplify GeneratedCode where
 
 
 -- |
--- >>> import Data.Yaml.MyExtra
+-- >>> import Data.Yaml.Ordered.MyExtra
 -- >>> import Raml.Parser
 -- >>> import Raml.Normalizer
 -- >>> import Raml.Classifier
@@ -33,40 +33,40 @@ instance Simplify GeneratedCode where
 -- - - - trait:
 --         name: DataType
 --     - case_object:
+--         name: StringType
 --         parent: DataType
---         name: BooleanType
+--     - case_object:
+--         name: NumberType
+--         parent: DataType
 --     - case_class:
+--         name: DateType
 --         parent: DataType
+--         parameters:
+--         - field:
+--             name: dateFormat
+--             type: String
 --         requirements:
 --         - - dateFormat match {
 --           - - case DateType.DateFormatPattern() => true
 --             - case _ => false
 --           - ! '}'
---         name: DateType
---         parameters:
---         - field:
---             name: dateFormat
---             type: String
 --     - case_object:
+--         name: BooleanType
 --         parent: DataType
---         name: NumberType
---     - case_object:
---         parent: DataType
---         name: StringType
 --   - - companion_object:
 --         name: DateType
 --         vals:
 --         - val:
---             value: ! '"[YMD]+[-\\.][YMD]+[-\\.\\/][YMD]+".r'
 --             name: DateFormatPattern
+--             value: ! '"[YMD]+[-\\.][YMD]+[-\\.\\/][YMD]+".r'
 -- - - - case_class:
 --         name: Field
 --         parameters:
 --         - field:
---             name: dataType
---             type: DataType
---         - field:
 --             name: name
 --             type: String
+--         - field:
+--             name: dataType
+--             type: DataType
 instance Simplify GeneratedTree where
   simplify = GeneratedTree . simplify . unGeneratedTree

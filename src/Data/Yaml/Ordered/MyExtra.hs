@@ -1,5 +1,5 @@
 {-# LANGUAGE DeriveFunctor, OverloadedStrings, PatternSynonyms, ViewPatterns #-}
-module Data.Yaml.MyExtra where
+module Data.Yaml.Ordered.MyExtra where
 
 import Prelude hiding (null)
 
@@ -8,8 +8,8 @@ import Data.Maybe
 import qualified Data.ByteString.Char8 as ByteString
 import           Data.Text (Text)
 import qualified Data.Text as Text
-import           Data.Yaml (FromJSON(..), ToJSON(..))
-import qualified Data.Yaml as Yaml
+import           Data.Yaml.Ordered (FromJSON(..), ToJSON(..))
+import qualified Data.Yaml.Ordered as Yaml
 
 import Data.Empty
 
