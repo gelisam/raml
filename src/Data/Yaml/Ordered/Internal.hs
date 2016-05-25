@@ -30,7 +30,6 @@ import Data.ByteString (ByteString)
 import Data.Char (toUpper)
 import qualified Data.Conduit as C
 import qualified Data.Conduit.List as CL
-import qualified Data.HashMap.Strict as M
 import qualified Data.HashSet as HashSet
 import qualified Data.Map as Map
 import Data.Scientific (Scientific)
@@ -43,6 +42,8 @@ import qualified Data.Vector as V
 
 import qualified Text.Libyaml as Y
 import Text.Libyaml hiding (encode, decode, encodeFile, decodeFile)
+
+import qualified Data.AList as M
 
 data ParseException = NonScalarKey
                     | UnknownAlias { _anchorName :: Y.AnchorName }
@@ -198,7 +199,7 @@ parseS a front = do
             parseS a $ front . (:) o
 
 parseM :: Y.Anchor
-       -> M.HashMap Text Value
+       -> M.AList Text Value
        -> C.Sink Event Parse Value
 parseM a front = do
     me <- CL.peek

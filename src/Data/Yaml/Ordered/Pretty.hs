@@ -18,7 +18,6 @@ import Control.Applicative ((<$>))
 import Data.Aeson.Ordered.Types
 import Data.ByteString (ByteString)
 import Data.Function (on)
-import qualified Data.HashMap.Strict as HM
 import Data.List (sortBy)
 #if !MIN_VERSION_base(4,8,0)
 import Data.Monoid
@@ -27,6 +26,8 @@ import Data.Text (Text)
 import qualified Data.Vector as V
 
 import Data.Yaml.Ordered.Builder
+
+import qualified Data.AList as HM
 
 -- |
 -- Since 0.8.13
@@ -52,7 +53,7 @@ setConfCompare cmp c = c { confCompare = cmp }
 
 pretty :: Config -> Value -> YamlBuilder
 pretty cfg = go
-  where go (Object o) = mapping (sortBy (confCompare cfg `on` fst) $ HM.toList $ HM.map go o)
+  where go (Object o) = mapping (sortBy (confCompare cfg `on` fst) $ HM.toList $ fmap go o)
         go (Array a)  = array (go <$> V.toList a)
         go Null       = null
         go (String s) = string s

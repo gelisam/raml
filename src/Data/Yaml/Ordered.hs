@@ -76,7 +76,6 @@ import Data.Aeson.Ordered.Types (Pair, parseMaybe, parseEither, Parser)
 import Data.ByteString (ByteString)
 import qualified Data.Conduit as C
 import qualified Data.Conduit.List as CL
-import qualified Data.HashMap.Strict as M
 import qualified Data.HashSet as HashSet
 import Data.Text.Encoding (encodeUtf8)
 import qualified Data.Text.Encoding as TE
@@ -88,6 +87,8 @@ import System.IO.Unsafe (unsafePerformIO)
 import Data.Yaml.Ordered.Internal
 import Text.Libyaml hiding (encode, decode, encodeFile, decodeFile)
 import qualified Text.Libyaml as Y
+
+import qualified Data.AList as M
 
 encode :: ToJSON a => a -> ByteString
 encode obj = unsafePerformIO $

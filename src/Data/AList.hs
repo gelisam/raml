@@ -6,7 +6,7 @@ module Data.AList
   , fromList, toList
   , mapKeyVal, mapWithKey, foldrWithKey, traverseWithKey
   , null, member, lookup, (!)
-  , insert, union
+  , insert, union, unionWith
   ) where
 
 import Prelude hiding (null, lookup)
@@ -110,8 +110,15 @@ insert k x (AList {..}) = AList keys' values'
           | otherwise           = keys |> k
     values' = Map.insert k x values
 
-union :: (Eq k, Hashable k) => AList k a -> AList k a -> AList k a
-union xs1 xs2 = AList (keys xs1 >< ks2) (values xs1 `Map.union` values xs2)
+union :: (Eq k, Hashable k)
+      => AList k a -> AList k a -> AList k a
+union = unionWith const
+
+unionWith :: (Eq k, Hashable k)
+          => (a -> a -> a)
+          -> AList k a -> AList k a -> AList k a
+unionWith f xs1 xs2 = AList (keys xs1 >< ks2)
+                            (Map.unionWith f (values xs1) (values xs2))
   where
     notDuplicate = not . (`member` xs1)
     ks2 = Seq.filter notDuplicate (keys xs2)

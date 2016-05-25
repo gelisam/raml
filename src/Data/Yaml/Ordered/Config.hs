@@ -44,6 +44,8 @@ import qualified Data.Yaml.Ordered as Y
 import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 
+import qualified Data.AList as A
+
 newtype MergedValue = MergedValue { getMergedValue :: Value }
 
 instance Semigroup MergedValue where
@@ -51,7 +53,7 @@ instance Semigroup MergedValue where
 
 -- | Left biased
 mergeValues :: Value -> Value -> Value
-mergeValues (Object x) (Object y) = Object $ H.unionWith mergeValues x y
+mergeValues (Object x) (Object y) = Object $ A.unionWith mergeValues x y
 mergeValues x _ = x
 
 -- | Override environment variable placeholders in the given @Value@ with
