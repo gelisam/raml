@@ -1,27 +1,27 @@
 module Raml.UsageCounter where
 
 import Data.Maybe
-import           Data.Map (Map)
-import qualified Data.Map as Map
+import           Data.AList (AList)
+import qualified Data.AList as AList
 
 import Raml.Common
 import Raml.Classifier
 
 
 newtype UnionUsage = UnionUsage
-  { getUnionUsage :: Map TypeName Int
+  { getUnionUsage :: AList TypeName Int
   } deriving (Show, Eq)
 
 instance Monoid UnionUsage where
-  mempty = UnionUsage Map.empty
+  mempty = UnionUsage AList.empty
   UnionUsage xs `mappend` UnionUsage ys =
-    UnionUsage (Map.unionWithKey (const (+)) xs ys)
+    UnionUsage (AList.unionWithKey (const (+)) xs ys)
 
 countOnce :: TypeName -> UnionUsage
-countOnce k = UnionUsage (Map.singleton k 1)
+countOnce k = UnionUsage (AList.singleton k 1)
 
 (!) :: UnionUsage -> TypeName -> Int
-UnionUsage xs ! k = fromMaybe 0 (Map.lookup k xs)
+UnionUsage xs ! k = fromMaybe 0 (AList.lookup k xs)
 
 
 countInObjectType :: ObjectType -> UnionUsage

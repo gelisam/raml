@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Raml.Normalizer (TypeExpr(..), module Raml.Normalizer) where
 
-import           Data.Map (Map)
+import           Data.AList (AList)
 import           Data.Maybe
 import           Data.Yaml.Ordered (ToJSON(..))
 
@@ -13,13 +13,13 @@ import qualified Raml.Parser as Parser
 
 data TypeProps = TypeProps
   { parentType :: TypeExpr
-  , properties :: Maybe (Map PropertyName TypeProps)
+  , properties :: Maybe (AList PropertyName TypeProps)
   , discriminator :: Maybe Discriminator
   , stringPattern :: Maybe Regexp
   } deriving (Show, Eq)
 
 
-type SymbolTable = Map TypeName TypeProps
+type SymbolTable = AList TypeName TypeProps
 
 newtype NormalizedTree = NormalizedTree
   { unNormalizedTree :: SymbolTable

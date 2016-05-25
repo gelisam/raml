@@ -2,8 +2,8 @@
 module Raml.Classifier where
 
 import Data.Maybe
-import           Data.Map (Map, (!))
-import qualified Data.Map as Map
+import           Data.AList (AList, (!))
+import qualified Data.AList as AList
 import           Data.Yaml.Ordered (ToJSON(..))
 import Text.Printf
 
@@ -47,7 +47,7 @@ data UnionBranch
 
 data ObjectProps = ObjectProps
   { parentObjectType :: ObjectType
-  , properties :: Map PropertyName FieldProps
+  , properties :: AList PropertyName FieldProps
   , objectDiscriminator :: Maybe Discriminator
   } deriving (Show, Eq)
 
@@ -67,10 +67,10 @@ data TypeProps
   deriving (Show, Eq)
 
 
-type SymbolTable = Map TypeName TypeProps
+type SymbolTable = AList TypeName TypeProps
 
 newtype ClassifiedTree = ClassifiedTree
-  { unClassifiedTree :: Map TypeName TypeProps
+  { unClassifiedTree :: AList TypeName TypeProps
   } deriving (Show, Eq)
 
 
@@ -124,9 +124,9 @@ instance ToJSON ClassifiedTree where
 
 
 classifyProperties :: SymbolTable
-                   -> Maybe (Map PropertyName Normalizer.TypeProps)
-                   -> Map PropertyName FieldProps
-classifyProperties symbolTable = fromMaybe Map.empty
+                   -> Maybe (AList PropertyName Normalizer.TypeProps)
+                   -> AList PropertyName FieldProps
+classifyProperties symbolTable = fromMaybe AList.empty
                                . (fmap . fmap) go
   where
     go :: Normalizer.TypeProps -> FieldProps
@@ -140,10 +140,10 @@ classifyProperties symbolTable = fromMaybe Map.empty
     classifyUnionExpr = CustomField . UnionTypeProps
     
     classifyCustomObject :: ObjectType
-                         -> Map PropertyName FieldProps
+                         -> AList PropertyName FieldProps
                          -> Maybe Discriminator
                          -> FieldProps
-    classifyCustomObject (ObjectRef typeName) props Nothing | Map.null props =
+    classifyCustomObject (ObjectRef typeName) props Nothing | AList.null props =
         RegularField typeName
     classifyCustomObject objectType props discr =
         CustomField $ ObjectTypeProps
@@ -197,7 +197,7 @@ classifyTypeExpr symbolTable = go
 
 
 classifyTypeProps :: (UnionProps -> a)
-                  -> (ObjectType -> Map PropertyName FieldProps
+                  -> (ObjectType -> AList PropertyName FieldProps
                                  -> Maybe Discriminator
                                  -> a)
                   -> (StringType -> Maybe Regexp
@@ -266,7 +266,7 @@ classifyTopLevelTypeProps = classifyTypeProps classifyUnionExpr
     classifyUnionExpr = UnionTypeProps
     
     classifyCustomObject :: ObjectType
-                         -> Map PropertyName FieldProps
+                         -> AList PropertyName FieldProps
                          -> Maybe Discriminator
                          -> TypeProps
     classifyCustomObject objectType props discr =

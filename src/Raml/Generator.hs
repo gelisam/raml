@@ -2,8 +2,8 @@
 module Raml.Generator where
 
 import Data.Maybe
-import           Data.Map (Map)
-import qualified Data.Map as Map
+import           Data.AList (AList)
+import qualified Data.AList as AList
 import           Data.Yaml.Ordered (ToJSON(..))
 import Text.Printf
 
@@ -191,8 +191,8 @@ generateProductClass typeName (Analyzer.NamedProductProps fields) =
     $ CaseClass
     { caseClassName = typeName
     , caseClassParent = Nothing
-    , parameters = map (uncurry generateField) (Map.toList fields)
-    , requirements = mapMaybe (uncurry go) (Map.toList fields)
+    , parameters = map (uncurry generateField) (AList.toList fields)
+    , requirements = mapMaybe (uncurry go) (AList.toList fields)
     }
     ]
   where
@@ -210,15 +210,15 @@ accompanyProductClass typeName (Analyzer.NamedProductProps fields) =
 generateCaseClass :: CompanionNamer
                   -> TypeName
                   -> Maybe TypeName
-                  -> Map PropertyName Analyzer.Field
+                  -> AList PropertyName Analyzer.Field
                   -> [GeneratedCode]
 generateCaseClass companionNamer typeName parentName fields =
     [ GeneratedCaseClass
     $ CaseClass
     { caseClassName = typeName
     , caseClassParent = parentName
-    , parameters = map (uncurry generateField) (Map.toList fields)
-    , requirements = mapMaybe (uncurry go) (Map.toList fields)
+    , parameters = map (uncurry generateField) (AList.toList fields)
+    , requirements = mapMaybe (uncurry go) (AList.toList fields)
     }
     ]
   where
@@ -227,13 +227,13 @@ generateCaseClass companionNamer typeName parentName fields =
 
 accompanyCaseClass :: CompanionNamer
                    -> TypeName
-                   -> Map PropertyName Analyzer.Field
+                   -> AList PropertyName Analyzer.Field
                    -> [GeneratedCode]
 accompanyCaseClass companionNamer typeName fields =
     [ GeneratedCompanionObject
     $ CompanionObject
     { companionName = typeName
-    , staticVals = foldMap (uncurry go) (Map.toList fields)
+    , staticVals = foldMap (uncurry go) (AList.toList fields)
     }
     ]
   where
@@ -257,12 +257,12 @@ generateBranches typeName (Analyzer.NamedSumProps branches) =
     [ GeneratedTrait
     $ Trait typeName
     ] ++
-    foldMap (uncurry (generateBranch typeName)) (Map.toList branches)
+    foldMap (uncurry (generateBranch typeName)) (AList.toList branches)
 
 accompanyBranches :: TypeName -> Analyzer.NamedSumProps -> [GeneratedCode]
 accompanyBranches typeName (Analyzer.NamedSumProps branches) =
-    accompanyCaseClass unqualifiedCompanionNamer typeName Map.empty ++
-    foldMap (uncurry accompanyBranch) (Map.toList branches)
+    accompanyCaseClass unqualifiedCompanionNamer typeName AList.empty ++
+    foldMap (uncurry accompanyBranch) (AList.toList branches)
 
 
 generateNamedSum :: TypeName -> Analyzer.NamedSumProps -> [[GeneratedCode]]
@@ -342,5 +342,5 @@ generateTypeProps typeName (Analyzer.NamedProductTypeProps namedProduct) =
 generate :: AnalyzedTree -> GeneratedTree
 generate = GeneratedTree
          . map (uncurry generateTypeProps)
-         . Map.toList
+         . AList.toList
          . unAnalyzedTree

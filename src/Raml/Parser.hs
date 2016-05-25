@@ -3,7 +3,7 @@ module Raml.Parser where
 
 import qualified Data.Aeson.Ordered as Json
 import qualified Data.List as List
-import           Data.Map (Map)
+import           Data.AList (AList)
 import           Data.Yaml.Ordered (FromJSON(..), ToJSON(..), (.:), (.:?), (.=))
 import qualified Data.Yaml.Ordered as Yaml
 import Extra
@@ -22,13 +22,13 @@ data TypeExpr
 
 data TypeProps = TypeProps
   { type_ :: Maybe TypeExpr -- either the property's type or the parent type
-  , properties :: Maybe (Map PropertyName (Maybe (OrElse TypeExpr TypeProps)))
+  , properties :: Maybe (AList PropertyName (Maybe (OrElse TypeExpr TypeProps)))
   , discriminator :: Maybe Discriminator
   , stringPattern :: Maybe Regexp
   } deriving (Show, Eq)
 
 
-type SymbolTable = Map TypeName (OrElse TypeExpr TypeProps)
+type SymbolTable = AList TypeName (OrElse TypeExpr TypeProps)
 
 newtype ParseTree = ParseTree
   { unParseTree :: SymbolTable
