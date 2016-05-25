@@ -15,7 +15,8 @@ build-type:          Simple
 cabal-version:       >=1.10
 
 library
-  exposed-modules:     Data.Empty
+  exposed-modules:     Data.AList
+                     , Data.Empty
                      , Data.IndentedCode
                      , Data.String.MyExtra
                      , Data.Yaml.MyExtra
@@ -39,6 +40,7 @@ library
                      , either
                      , extra
                      , ghc-prim
+                     , hashable
                      , text
                      , template-haskell
                      , time
