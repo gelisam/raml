@@ -103,7 +103,7 @@ import Data.Text (Text, pack, unpack)
 import Data.Time (Day, LocalTime, NominalDiffTime, TimeOfDay, UTCTime,
                   ZonedTime)
 import Data.Time.Format (FormatTime, formatTime, parseTime)
-import Data.Traversable as Tr (sequence, traverse)
+import Data.Traversable as Tr (sequence)
 import Data.Vector (Vector)
 import Data.Word (Word8, Word16, Word32, Word64)
 import Data.Version (Version, showVersion, parseVersion)
