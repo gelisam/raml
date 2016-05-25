@@ -33,7 +33,10 @@ instance Simplify GeneratedCode where
 -- - - - trait:
 --         name: DataType
 --     - case_object:
---         name: BooleanType
+--         name: StringType
+--         parent: DataType
+--     - case_object:
+--         name: NumberType
 --         parent: DataType
 --     - case_class:
 --         name: DateType
@@ -48,10 +51,7 @@ instance Simplify GeneratedCode where
 --             - case _ => false
 --           - ! '}'
 --     - case_object:
---         name: NumberType
---         parent: DataType
---     - case_object:
---         name: StringType
+--         name: BooleanType
 --         parent: DataType
 --   - - companion_object:
 --         name: DateType
@@ -63,10 +63,10 @@ instance Simplify GeneratedCode where
 --         name: Field
 --         parameters:
 --         - field:
---             name: dataType
---             type: DataType
---         - field:
 --             name: name
 --             type: String
+--         - field:
+--             name: dataType
+--             type: DataType
 instance Simplify GeneratedTree where
   simplify = GeneratedTree . simplify . unGeneratedTree

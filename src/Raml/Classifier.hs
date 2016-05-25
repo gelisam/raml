@@ -299,6 +299,18 @@ classifyTopLevelTypeProps = classifyTypeProps classifyUnionExpr
 --     type: object
 --     properties: {}
 --     discriminator: constructor
+--   StringType:
+--     type: Alternative
+--     properties: {}
+--   NumberType:
+--     type: Alternative
+--     properties: {}
+--   DateType:
+--     type: Alternative
+--     properties:
+--       dateFormat:
+--         type: string
+--         pattern: ! '[YMD]+[-\.][YMD]+[-\.\/][YMD]+'
 --   BooleanType:
 --     type: Alternative
 --     properties: {}
@@ -307,24 +319,12 @@ classifyTopLevelTypeProps = classifyTypeProps classifyUnionExpr
 --   - NumberType
 --   - DateType
 --   - BooleanType
---   DateType:
---     type: Alternative
---     properties:
---       dateFormat:
---         type: string
---         pattern: ! '[YMD]+[-\.][YMD]+[-\.\/][YMD]+'
 --   Field:
 --     type: object
 --     properties:
---       dataType: DataType
 --       name:
 --         type: string
---   NumberType:
---     type: Alternative
---     properties: {}
---   StringType:
---     type: Alternative
---     properties: {}
+--       dataType: DataType
 classify :: NormalizedTree -> ClassifiedTree
 classify = ClassifiedTree . go . unNormalizedTree
   where

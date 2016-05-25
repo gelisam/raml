@@ -294,7 +294,10 @@ generateTypeProps typeName (Analyzer.NamedProductTypeProps namedProduct) =
 -- - - - trait:
 --         name: DataType
 --     - case_class:
---         name: BooleanType
+--         name: StringType
+--         parent: DataType
+--     - case_class:
+--         name: NumberType
 --         parent: DataType
 --     - case_class:
 --         name: DateType
@@ -309,15 +312,14 @@ generateTypeProps typeName (Analyzer.NamedProductTypeProps namedProduct) =
 --             - case _ => false
 --           - ! '}'
 --     - case_class:
---         name: NumberType
---         parent: DataType
---     - case_class:
---         name: StringType
+--         name: BooleanType
 --         parent: DataType
 --   - - companion_object:
 --         name: DataType
 --     - companion_object:
---         name: BooleanType
+--         name: StringType
+--     - companion_object:
+--         name: NumberType
 --     - companion_object:
 --         name: DateType
 --         vals:
@@ -325,18 +327,16 @@ generateTypeProps typeName (Analyzer.NamedProductTypeProps namedProduct) =
 --             name: DateFormatPattern
 --             value: ! '"[YMD]+[-\\.][YMD]+[-\\.\\/][YMD]+".r'
 --     - companion_object:
---         name: NumberType
---     - companion_object:
---         name: StringType
+--         name: BooleanType
 -- - - - case_class:
 --         name: Field
 --         parameters:
 --         - field:
---             name: dataType
---             type: DataType
---         - field:
 --             name: name
 --             type: String
+--         - field:
+--             name: dataType
+--             type: DataType
 --   - - companion_object:
 --         name: Field
 generate :: AnalyzedTree -> GeneratedTree

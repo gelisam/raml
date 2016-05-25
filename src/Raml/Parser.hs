@@ -87,20 +87,20 @@ instance ToJSON ParseTree where
 --   Alternative:
 --     type: object
 --     discriminator: constructor
---   BooleanType: Alternative
---   DataType: (StringType | NumberType | DateType | BooleanType)
+--   StringType: Alternative
+--   NumberType: Alternative
 --   DateType:
 --     type: Alternative
 --     properties:
 --       dateFormat:
 --         type: string
 --         pattern: ! '[YMD]+[-\.][YMD]+[-\.\/][YMD]+'
+--   BooleanType: Alternative
+--   DataType: (StringType | NumberType | DateType | BooleanType)
 --   Field:
 --     properties:
---       dataType: DataType
 --       name: null
---   NumberType: Alternative
---   StringType: Alternative
+--       dataType: DataType
 parse :: Yaml.Value -> ParseTree
 parse v = case Json.fromJSON v of
     Json.Error err -> error err

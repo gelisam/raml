@@ -77,26 +77,26 @@ normalizeTypeProps p = TypeProps
 --   Alternative:
 --     type: object
 --     discriminator: constructor
---   BooleanType:
+--   StringType:
 --     type: Alternative
---   DataType:
---     type: (StringType | NumberType | DateType | BooleanType)
+--   NumberType:
+--     type: Alternative
 --   DateType:
 --     type: Alternative
 --     properties:
 --       dateFormat:
 --         type: string
 --         pattern: ! '[YMD]+[-\.][YMD]+[-\.\/][YMD]+'
+--   BooleanType:
+--     type: Alternative
+--   DataType:
+--     type: (StringType | NumberType | DateType | BooleanType)
 --   Field:
 --     type: object
 --     properties:
---       dataType:
---         type: DataType
 --       name:
 --         type: string
---   NumberType:
---     type: Alternative
---   StringType:
---     type: Alternative
+--       dataType:
+--         type: DataType
 normalize :: ParseTree -> NormalizedTree
 normalize = NormalizedTree . fmap (normalizePropertyType . Just) . unParseTree

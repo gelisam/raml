@@ -142,7 +142,8 @@ prettyPrintGeneratedCode (GeneratedCompanionObject companionObject) =
 -- >>> r <- prettyPrint <$> simplify <$> generate <$> analyze <$> classify <$> normalize <$> parse <$> readYaml "tests/sample.in"
 -- >>> printIndented r
 -- sealed trait DataType
--- case object BooleanType extends DataType
+-- case object StringType extends DataType
+-- case object NumberType extends DataType
 -- case class DateType(
 --   dateFormat: String
 -- ) extends DataType {
@@ -153,8 +154,7 @@ prettyPrintGeneratedCode (GeneratedCompanionObject companionObject) =
 --     }
 --   )
 -- }
--- case object NumberType extends DataType
--- case object StringType extends DataType
+-- case object BooleanType extends DataType
 -- <BLANKLINE>
 -- object DateType {
 --   val DateFormatPattern = "[YMD]+[-\\.][YMD]+[-\\.\\/][YMD]+".r
@@ -162,8 +162,8 @@ prettyPrintGeneratedCode (GeneratedCompanionObject companionObject) =
 -- <BLANKLINE>
 -- <BLANKLINE>
 -- case class Field(
---   dataType: DataType,
---   name: String
+--   name: String,
+--   dataType: DataType
 -- )
 prettyPrint :: GeneratedTree -> IndentedCode
 prettyPrint = intercalate doubleBlank
