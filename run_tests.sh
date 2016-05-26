@@ -11,3 +11,6 @@ fi
 
 cabal build
 "$DIR"/.cabal-sandbox/bin/doctest -i"$DIR"/src $(find "$DIR/src" -name '*.hs')
+
+cabal install
+.cabal-sandbox/bin/raml-to-scala tests/sample.in | diff - tests/sample.scala
