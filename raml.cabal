@@ -60,9 +60,9 @@ library
   default-language:    Haskell2010
   ghc-options: -W -Wall
 executable raml-to-scala
-  main-is:             Main.hs
+  main-is:             RamlToScala.hs
   build-depends:       base >=4.8 && <4.9
                      , raml
-  hs-source-dirs:      src
+  hs-source-dirs:      tools
   default-language:    Haskell2010
   ghc-options: -W -Wall
