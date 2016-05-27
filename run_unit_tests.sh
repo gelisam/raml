@@ -3,11 +3,7 @@ set -e
 clear
 DIR="$(dirname "$0")"
 
-if [ ! -d "$DIR/.cabal-sandbox" ]; then
-  cabal sandbox init
-  cabal install doctest
-  cabal install
-fi
+"$DIR/helpers/initialize.sh"
 
 cabal build
 "$DIR"/.cabal-sandbox/bin/doctest -i"$DIR"/src $(find "$DIR/src" -name '*.hs')

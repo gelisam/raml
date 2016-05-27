@@ -16,20 +16,44 @@ cabal-version:       >=1.10
 
 library
   exposed-modules:     Data.AList
+                     , Data.Aeson.Ordered
+                     , Data.Aeson.Ordered.Encode
+                     , Data.Aeson.Ordered.Encode.Builder
+                     , Data.Aeson.Ordered.Encode.Functions
+                     , Data.Aeson.Ordered.Functions
+                     , Data.Aeson.Ordered.Internal
+                     , Data.Aeson.Ordered.Internal.Time
+                     , Data.Aeson.Ordered.Parser
+                     , Data.Aeson.Ordered.Parser.Internal
+                     , Data.Aeson.Ordered.Parser.Time
+                     , Data.Aeson.Ordered.TH
+                     , Data.Aeson.Ordered.Types
+                     , Data.Aeson.Ordered.Types.Class
+                     , Data.Aeson.Ordered.Types.Generic
+                     , Data.Aeson.Ordered.Types.Instances
+                     , Data.Aeson.Ordered.Types.Internal
                      , Data.Empty
                      , Data.IndentedCode
                      , Data.String.MyExtra
+                     , Data.Yaml.Ordered
+                     , Data.Yaml.Ordered.Aeson
+                     , Data.Yaml.Ordered.Builder
+                     , Data.Yaml.Ordered.Config
+                     , Data.Yaml.Ordered.Include
+                     , Data.Yaml.Ordered.Internal
                      , Data.Yaml.Ordered.MyExtra
-                     , Raml.Common
-                     , Raml.Parser
-                     , Raml.Normalizer
-                     , Raml.Classifier
-                     , Raml.UsageCounter
+                     , Data.Yaml.Ordered.Parser
+                     , Data.Yaml.Ordered.Pretty
                      , Raml.Analyzer
-                     , Raml.ScalaName
+                     , Raml.Classifier
+                     , Raml.Common
                      , Raml.Generator
-                     , Raml.Simplifier
+                     , Raml.Normalizer
+                     , Raml.Parser
                      , Raml.PrettyPrinter
+                     , Raml.ScalaName
+                     , Raml.Simplifier
+                     , Raml.UsageCounter
   -- other-modules:       
   -- other-extensions:    
   build-depends:       base >=4.8 && <4.9
@@ -38,11 +62,13 @@ library
                      , conduit
                      , containers
                      , deepseq
+                     , directory
                      , dlist
                      , either
                      , enclosed-exceptions
                      , extra
                      , fail
+                     , filepath
                      , ghc-prim
                      , hashable
                      , resourcet
@@ -57,5 +83,12 @@ library
                      , vector
                      , yaml
   hs-source-dirs:      src
+  default-language:    Haskell2010
+  ghc-options: -W -Wall
+executable raml-to-scala
+  main-is:             RamlToScala.hs
+  build-depends:       base >=4.8 && <4.9
+                     , raml
+  hs-source-dirs:      tools
   default-language:    Haskell2010
   ghc-options: -W -Wall
