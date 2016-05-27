@@ -166,8 +166,13 @@ prettyPrintGeneratedCode (GeneratedCompanionObject companionObject) =
 --   dataType: DataType
 -- )
 prettyPrint :: GeneratedTree -> IndentedCode
-prettyPrint = intercalate doubleBlank
-            . map (intercalate singleBlank)
-            . (map . map) concat
-            . (map . map . map) prettyPrintGeneratedCode
-            . unGeneratedTree
+prettyPrint = joinBlocks . toBlocks
+
+joinBlocks :: [[IndentedCode]] -> IndentedCode
+joinBlocks = intercalate doubleBlank
+           . map (intercalate singleBlank)
+
+toBlocks :: GeneratedTree -> [[IndentedCode]]
+toBlocks = (map . map) concat
+         . (map . map . map) prettyPrintGeneratedCode
+         . unGeneratedTree

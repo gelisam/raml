@@ -1,3 +1,6 @@
+package com.keatext.gelineau.samuel.hello
+
+
 sealed trait DataType
 case object StringType extends DataType
 case object NumberType extends DataType

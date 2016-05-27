@@ -1,7 +1,9 @@
 {-# LANGUAGE DeriveGeneric, OverloadedStrings, RecordWildCards #-}
 import qualified Filesystem.Path.CurrentOS as Path
 import Options.Generic
+import Text.Printf
 
+import Data.Maybe.MyExtra
 import Data.Yaml.Ordered.MyExtra
 import Raml.Parser
 import Raml.Normalizer
@@ -13,8 +15,16 @@ import Raml.PrettyPrinter
 import Data.IndentedCode
 
 
+addPackage :: String -> [[IndentedCode]] -> [[IndentedCode]]
+addPackage name = ([[Line package_line]]:)
+  where
+    package_line :: String
+    package_line = printf "package %s" name
+
+
 data CompilationOptions = CompilationOptions
-  { ramlFile :: Path.FilePath
+  { packageName :: Maybe String
+  , ramlFile :: Path.FilePath
   } deriving (Generic, Show, Eq)
 
 instance ParseRecord CompilationOptions
@@ -22,7 +32,9 @@ instance ParseRecord CompilationOptions
 
 compile :: CompilationOptions -> IO ()
 compile (CompilationOptions {..}) = do
-    r <- prettyPrint
+    r <- joinBlocks
+     <$> (addPackage `maybeAp` packageName)
+     <$> toBlocks
      <$> simplify
      <$> generate
      <$> analyze

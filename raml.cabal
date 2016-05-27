@@ -33,6 +33,7 @@ library
                      , Data.Aeson.Ordered.Types.Instances
                      , Data.Aeson.Ordered.Types.Internal
                      , Data.Empty
+                     , Data.Maybe.MyExtra
                      , Data.IndentedCode
                      , Data.String.MyExtra
                      , Data.Yaml.Ordered
