@@ -1,5 +1,5 @@
-{-# LANGUAGE RecordWildCards #-}
-import System.Environment
+{-# LANGUAGE DeriveGeneric, OverloadedStrings, RecordWildCards #-}
+import Options.Generic
 
 import Data.Yaml.Ordered.MyExtra
 import Raml.Parser
@@ -14,7 +14,10 @@ import Data.IndentedCode
 
 data CompilationOptions = CompilationOptions
   { ramlFile :: FilePath
-  } deriving (Show, Eq)
+  } deriving (Generic, Show, Eq)
+
+instance ParseRecord CompilationOptions
+
 
 compile :: CompilationOptions -> IO ()
 compile (CompilationOptions {..}) = do
@@ -28,12 +31,5 @@ compile (CompilationOptions {..}) = do
      <$> readYaml ramlFile
     printIndented r
 
-raml_to_scala :: [String] -> IO ()
-raml_to_scala [fileName] = compile (CompilationOptions fileName)
-raml_to_scala _ = do
-    putStrLn "usage:"
-    putStrLn "  raml-to-scala file.raml > file.scala"
-    -- TODO: more information please!
-
 main :: IO ()
-main = getArgs >>= raml_to_scala
+main = getRecord "Generate Scala types corresponding to the given RAML types." >>= compile
