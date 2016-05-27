@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveGeneric, OverloadedStrings, RecordWildCards #-}
+import qualified Filesystem.Path.CurrentOS as Path
 import Options.Generic
 
 import Data.Yaml.Ordered.MyExtra
@@ -13,7 +14,7 @@ import Data.IndentedCode
 
 
 data CompilationOptions = CompilationOptions
-  { ramlFile :: FilePath
+  { ramlFile :: Path.FilePath
   } deriving (Generic, Show, Eq)
 
 instance ParseRecord CompilationOptions
@@ -28,7 +29,7 @@ compile (CompilationOptions {..}) = do
      <$> classify
      <$> normalize
      <$> parse
-     <$> readYaml ramlFile
+     <$> readYaml (Path.encodeString ramlFile)
     printIndented r
 
 main :: IO ()

@@ -90,6 +90,7 @@ executable raml-to-scala
   build-depends:       base >=4.8 && <4.9
                      , raml
                      , optparse-generic
+                     , system-filepath
   hs-source-dirs:      tools
   default-language:    Haskell2010
   ghc-options: -W -Wall
