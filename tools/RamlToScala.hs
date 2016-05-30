@@ -1,29 +1,22 @@
 {-# LANGUAGE DeriveGeneric, OverloadedStrings, RecordWildCards #-}
 import qualified Filesystem.Path.CurrentOS as Path
 import Options.Generic
-import Text.Printf
 
-import Data.Maybe.MyExtra
 import Data.Yaml.Ordered.MyExtra
 import Raml.Parser
 import Raml.Normalizer
 import Raml.Classifier
 import Raml.Analyzer
 import Language.Scala.Generator
-import Language.Scala.Simplifier
+import Language.Scala.IncludeTracker
+import Language.Scala.Name
 import Language.Scala.PrettyPrinter
+import Language.Scala.Simplifier
 import Data.IndentedCode
 
 
-addPackage :: String -> [[IndentedCode]] -> [[IndentedCode]]
-addPackage name = ([[Line package_line]]:)
-  where
-    package_line :: String
-    package_line = printf "package %s" name
-
-
 data CompilationOptions = CompilationOptions
-  { packageName :: Maybe String
+  { packageName :: Maybe PackageName
   , ramlFile :: Path.FilePath
   } deriving (Generic, Show, Eq)
 
@@ -33,7 +26,8 @@ instance ParseRecord CompilationOptions
 compile :: CompilationOptions -> IO ()
 compile (CompilationOptions {..}) = do
     r <- layoutGroupedCode
-     <$> (addPackage `maybeAp` packageName)
+     <$> runIncludeTracker packageName
+     <$> return
      <$> prettyPrint
      <$> simplify
      <$> generate

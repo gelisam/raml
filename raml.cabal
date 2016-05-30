@@ -46,6 +46,7 @@ library
                      , Data.Yaml.Ordered.Parser
                      , Data.Yaml.Ordered.Pretty
                      , Language.Scala.Generator
+                     , Language.Scala.IncludeTracker
                      , Language.Scala.Name
                      , Language.Scala.PrettyPrinter
                      , Language.Scala.Simplifier

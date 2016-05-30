@@ -19,11 +19,12 @@ instance ToJSON CodeChunk where
   toJSON (Indented xs) = toJSON xs
 
 
-singleBlank :: IndentedCode
-singleBlank = [Line ""]
+unindentedLine :: String -> IndentedCode
+unindentedLine s = [Line s]
 
-doubleBlank :: IndentedCode
-doubleBlank = [Line "", Line ""]
+unindentedLines :: [String] -> IndentedCode
+unindentedLines = foldMap unindentedLine
+
 
 printIndented :: IndentedCode -> IO ()
 printIndented = go ""
@@ -38,6 +39,13 @@ printIndented = go ""
 
 type GroupedCode = [[IndentedCode]]
 
+singleBlank :: IndentedCode
+singleBlank = [Line ""]
+
+doubleBlank :: IndentedCode
+doubleBlank = [Line "", Line ""]
+
 layoutGroupedCode :: GroupedCode -> IndentedCode
 layoutGroupedCode = intercalate doubleBlank
-                  . map (intercalate singleBlank)
+                  . map (intercalate singleBlank . filter (not . null))
+                  . filter (not . null)

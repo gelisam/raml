@@ -4,8 +4,10 @@ import qualified Data.String.MyExtra as String
 import qualified Raml as Raml
 
 
-type TypeName = Raml.TypeName
-type ValName = String
+type PackageName = String      -- e.g. "com.gelisam"
+type IncludeName = String      -- e.g. "com.gelisam.Foo._"
+type TypeName = Raml.TypeName  -- e.g. "Foo"
+type ValName = String          -- e.g. "foo"
 
 data Name
   = Name String
