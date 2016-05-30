@@ -37,20 +37,20 @@ qualifiedName packageName typeName = do
 -- >>> let bar = qualifiedName "com.gelisam" "Bar"
 -- >>> let groupedCode = addValues <$> sequence [foo, bar, foo]
 -- 
--- >>> printIndented $ layoutGroupedCode $ runIncludeTracker Nothing groupedCode
+-- >>> testGroupedCode $ runIncludeTracker Nothing groupedCode
 -- import com.gelisam.Bar
 -- import com.gelisam.Foo
--- <BLANKLINE>
--- <BLANKLINE>
+-- .
+-- .
 -- Foo.value + Bar.value + Foo.value
 -- 
--- >>> printIndented $ layoutGroupedCode $ runIncludeTracker (Just "com.gelisam.adder") groupedCode
+-- >>> testGroupedCode $ runIncludeTracker (Just "com.gelisam.adder") groupedCode
 -- package com.gelisam.adder
--- <BLANKLINE>
+-- .
 -- import com.gelisam.Bar
 -- import com.gelisam.Foo
--- <BLANKLINE>
--- <BLANKLINE>
+-- .
+-- .
 -- Foo.value + Bar.value + Foo.value
 runIncludeTracker :: Maybe PackageName
                   -> IncludeTracker GroupedCode

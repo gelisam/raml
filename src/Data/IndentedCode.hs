@@ -49,3 +49,17 @@ layoutGroupedCode :: GroupedCode -> IndentedCode
 layoutGroupedCode = intercalate doubleBlank
                   . map (intercalate singleBlank . filter (not . null))
                   . filter (not . null)
+
+testGroupedCode :: GroupedCode -> IO ()
+testGroupedCode = printIndented . go
+  where
+    go :: GroupedCode -> IndentedCode
+    go = intercalate doubleDot
+       . map (intercalate singleDot . filter (not . null))
+       . filter (not . null)
+    
+    singleDot :: IndentedCode
+    singleDot = [Line "."]
+    
+    doubleDot :: IndentedCode
+    doubleDot = [Line ".", Line "."]

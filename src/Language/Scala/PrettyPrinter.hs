@@ -129,8 +129,8 @@ prettyPrintGeneratedCode (GeneratedCompanionObject companionObject) =
 -- >>> import Raml
 -- >>> import Language.Scala.Generator
 -- >>> import Language.Scala.Simplifier
--- >>> r <- layoutGroupedCode <$> prettyPrint <$> simplify <$> generate <$> readRaml "tests/sample.in"
--- >>> printIndented r
+-- >>> r <- prettyPrint <$> simplify <$> generate <$> readRaml "tests/sample.in"
+-- >>> testGroupedCode r
 -- sealed trait DataType
 -- case object StringType extends DataType
 -- case object NumberType extends DataType
@@ -145,12 +145,12 @@ prettyPrintGeneratedCode (GeneratedCompanionObject companionObject) =
 --   )
 -- }
 -- case object BooleanType extends DataType
--- <BLANKLINE>
+-- .
 -- object DateType {
 --   val DateFormatPattern = "[YMD]+[-\\.][YMD]+[-\\.\\/][YMD]+".r
 -- }
--- <BLANKLINE>
--- <BLANKLINE>
+-- .
+-- .
 -- case class Field(
 --   name: String,
 --   dataType: DataType
