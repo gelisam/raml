@@ -7,13 +7,6 @@ import Data.IndentedCode
 import Language.Scala.Generator
 
 
-singleBlank :: IndentedCode
-singleBlank = [Line ""]
-
-doubleBlank :: IndentedCode
-doubleBlank = [Line "", Line ""]
-
-
 prependPrefix :: String -> IndentedCode -> IndentedCode
 prependPrefix prefix = go
   where
@@ -162,14 +155,7 @@ prettyPrintGeneratedCode (GeneratedCompanionObject companionObject) =
 --   name: String,
 --   dataType: DataType
 -- )
-prettyPrint :: GeneratedTree -> IndentedCode
-prettyPrint = joinBlocks . toBlocks
-
-joinBlocks :: [[IndentedCode]] -> IndentedCode
-joinBlocks = intercalate doubleBlank
-           . map (intercalate singleBlank)
-
-toBlocks :: GeneratedTree -> [[IndentedCode]]
-toBlocks = (map . map) concat
-         . (map . map . map) prettyPrintGeneratedCode
-         . unGeneratedTree
+prettyPrint :: GeneratedTree -> [[IndentedCode]]
+prettyPrint = (map . map) concat
+            . (map . map . map) prettyPrintGeneratedCode
+            . unGeneratedTree

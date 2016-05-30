@@ -32,9 +32,8 @@ instance ParseRecord CompilationOptions
 
 compile :: CompilationOptions -> IO ()
 compile (CompilationOptions {..}) = do
-    r <- joinBlocks
-     <$> (addPackage `maybeAp` packageName)
-     <$> toBlocks
+    r <- (addPackage `maybeAp` packageName)
+     <$> prettyPrint
      <$> simplify
      <$> generate
      <$> analyze

@@ -1,5 +1,6 @@
 module Data.IndentedCode where
 
+import Data.List
 import Data.Yaml.Ordered (ToJSON(..))
 
 import Data.Yaml.Ordered.MyExtra
@@ -17,8 +18,16 @@ instance ToJSON CodeChunk where
   toJSON (Indented xs) = toJSON xs
 
 
-printIndented :: IndentedCode -> IO ()
+singleBlank :: IndentedCode
+singleBlank = [Line ""]
+
+doubleBlank :: IndentedCode
+doubleBlank = [Line "", Line ""]
+
+printIndented :: [[IndentedCode]] -> IO ()
 printIndented = go ""
+              . intercalate doubleBlank
+              . map (intercalate singleBlank)
   where
     go :: String -> IndentedCode -> IO ()
     go indent = mapM_ (printBlock indent)
