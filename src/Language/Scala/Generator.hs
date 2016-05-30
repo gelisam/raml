@@ -11,9 +11,8 @@ import Data.Empty
 import Data.IndentedCode
 import Data.Yaml.Ordered.MyExtra
 import Language.Scala.Name
-import Raml.Common
-import           Raml.Analyzer (AnalyzedTree(..))
-import qualified Raml.Analyzer as Analyzer
+import           Raml (Raml)
+import qualified Raml as Raml
 
 
 data Trait = Trait
@@ -118,18 +117,18 @@ instance ToJSON GeneratedTree where
   toJSON (GeneratedTree x) = toJSON x
 
 
-generateType :: Analyzer.Field -> TypeName
-generateType (Analyzer.RegularField typeName) = typeName
-generateType (Analyzer.BuiltinField Analyzer.String) = "String"
-generateType (Analyzer.CustomStringField _) = "String"
+generateType :: Raml.Field -> TypeName
+generateType (Raml.RegularField typeName) = typeName
+generateType (Raml.BuiltinField Raml.String) = "String"
+generateType (Raml.CustomStringField _) = "String"
 
-generateField :: PropertyName -> Analyzer.Field -> Field
+generateField :: Raml.PropertyName -> Raml.Field -> Field
 generateField fieldName_ type_ = Field fieldName_ (generateType type_)
 
 
 generateStringFieldRequirement :: CompanionNamer
-                               -> PropertyName
-                               -> Analyzer.StringFieldProps
+                               -> Raml.PropertyName
+                               -> Raml.StringFieldProps
                                -> CodeChunk
 generateStringFieldRequirement companionNamer fieldName_ _ =
     Indented
@@ -146,11 +145,11 @@ generateStringFieldRequirement companionNamer fieldName_ _ =
     patternVar = capitalize (companionNamer fieldName_ "pattern")
 
 accompanyStringFieldRequirement :: CompanionNamer
-                                -> PropertyName
-                                -> Analyzer.StringFieldProps
+                                -> Raml.PropertyName
+                                -> Raml.StringFieldProps
                                 -> [Val]
 accompanyStringFieldRequirement companionNamer fieldName_
-                                (Analyzer.StringFieldProps pattern) =
+                                (Raml.StringFieldProps pattern) =
     [ Val
     { valName = nameToString patternVar
     , valValue = Line $ printf "%s.r" (show pattern)
@@ -161,32 +160,32 @@ accompanyStringFieldRequirement companionNamer fieldName_
 
 
 generateRequirement :: CompanionNamer
-                    -> PropertyName
-                    -> Analyzer.Field
+                    -> Raml.PropertyName
+                    -> Raml.Field
                     -> Maybe CodeChunk
 generateRequirement companionNamer fieldName_ = go
   where
-    go :: Analyzer.Field -> Maybe CodeChunk
-    go (Analyzer.RegularField _) = Nothing
-    go (Analyzer.BuiltinField _) = Nothing
-    go (Analyzer.CustomStringField stringFieldProps) =
+    go :: Raml.Field -> Maybe CodeChunk
+    go (Raml.RegularField _) = Nothing
+    go (Raml.BuiltinField _) = Nothing
+    go (Raml.CustomStringField stringFieldProps) =
         Just $ generateStringFieldRequirement companionNamer fieldName_ stringFieldProps
 
 accompanyRequirement :: CompanionNamer
-                     -> PropertyName
-                     -> Analyzer.Field
+                     -> Raml.PropertyName
+                     -> Raml.Field
                      -> [Val]
 accompanyRequirement companionNamer fieldName_ = go
   where
-    go :: Analyzer.Field -> [Val]
-    go (Analyzer.RegularField _) = []
-    go (Analyzer.BuiltinField _) = []
-    go (Analyzer.CustomStringField customField) =
+    go :: Raml.Field -> [Val]
+    go (Raml.RegularField _) = []
+    go (Raml.BuiltinField _) = []
+    go (Raml.CustomStringField customField) =
         accompanyStringFieldRequirement companionNamer fieldName_ customField
 
 
-generateProductClass :: TypeName -> Analyzer.NamedProductProps -> [GeneratedCode]
-generateProductClass typeName (Analyzer.NamedProductProps fields) =
+generateProductClass :: TypeName -> Raml.NamedProductProps -> [GeneratedCode]
+generateProductClass typeName (Raml.NamedProductProps fields) =
     [ GeneratedCaseClass
     $ CaseClass
     { caseClassName = typeName
@@ -196,21 +195,21 @@ generateProductClass typeName (Analyzer.NamedProductProps fields) =
     }
     ]
   where
-    go :: PropertyName -> Analyzer.Field -> Maybe CodeChunk
+    go :: Raml.PropertyName -> Raml.Field -> Maybe CodeChunk
     go = generateRequirement companionNamer
     
     companionNamer :: CompanionNamer
     companionNamer = qualifiedCompanionNamer typeName
 
-accompanyProductClass :: TypeName -> Analyzer.NamedProductProps -> [GeneratedCode]
-accompanyProductClass typeName (Analyzer.NamedProductProps fields) =
+accompanyProductClass :: TypeName -> Raml.NamedProductProps -> [GeneratedCode]
+accompanyProductClass typeName (Raml.NamedProductProps fields) =
     accompanyCaseClass unqualifiedCompanionNamer typeName fields
 
 
 generateCaseClass :: CompanionNamer
                   -> TypeName
                   -> Maybe TypeName
-                  -> AList PropertyName Analyzer.Field
+                  -> AList Raml.PropertyName Raml.Field
                   -> [GeneratedCode]
 generateCaseClass companionNamer typeName parentName fields =
     [ GeneratedCaseClass
@@ -222,12 +221,12 @@ generateCaseClass companionNamer typeName parentName fields =
     }
     ]
   where
-    go :: PropertyName -> Analyzer.Field -> Maybe CodeChunk
+    go :: Raml.PropertyName -> Raml.Field -> Maybe CodeChunk
     go = generateRequirement companionNamer
 
 accompanyCaseClass :: CompanionNamer
                    -> TypeName
-                   -> AList PropertyName Analyzer.Field
+                   -> AList Raml.PropertyName Raml.Field
                    -> [GeneratedCode]
 accompanyCaseClass companionNamer typeName fields =
     [ GeneratedCompanionObject
@@ -237,59 +236,56 @@ accompanyCaseClass companionNamer typeName fields =
     }
     ]
   where
-    go :: PropertyName -> Analyzer.Field -> [Val]
+    go :: Raml.PropertyName -> Raml.Field -> [Val]
     go = accompanyRequirement companionNamer
 
 
-generateBranch :: TypeName -> BranchName -> Analyzer.BranchProps -> [GeneratedCode]
-generateBranch parentName branchName (Analyzer.BranchProps fields) =
+generateBranch :: TypeName -> Raml.BranchName -> Raml.BranchProps -> [GeneratedCode]
+generateBranch parentName branchName (Raml.BranchProps fields) =
     generateCaseClass companionNamer branchName (Just parentName) fields
   where
     companionNamer :: CompanionNamer
     companionNamer = qualifiedCompanionNamer branchName
 
-accompanyBranch :: BranchName -> Analyzer.BranchProps -> [GeneratedCode]
-accompanyBranch typeName (Analyzer.BranchProps fields) =
+accompanyBranch :: Raml.BranchName -> Raml.BranchProps -> [GeneratedCode]
+accompanyBranch typeName (Raml.BranchProps fields) =
     accompanyCaseClass unqualifiedCompanionNamer typeName fields
 
-generateBranches :: TypeName -> Analyzer.NamedSumProps -> [GeneratedCode]
-generateBranches typeName (Analyzer.NamedSumProps branches) =
+generateBranches :: TypeName -> Raml.NamedSumProps -> [GeneratedCode]
+generateBranches typeName (Raml.NamedSumProps branches) =
     [ GeneratedTrait
     $ Trait typeName
     ] ++
     foldMap (uncurry (generateBranch typeName)) (AList.toList branches)
 
-accompanyBranches :: TypeName -> Analyzer.NamedSumProps -> [GeneratedCode]
-accompanyBranches typeName (Analyzer.NamedSumProps branches) =
+accompanyBranches :: TypeName -> Raml.NamedSumProps -> [GeneratedCode]
+accompanyBranches typeName (Raml.NamedSumProps branches) =
     accompanyCaseClass unqualifiedCompanionNamer typeName AList.empty ++
     foldMap (uncurry accompanyBranch) (AList.toList branches)
 
 
-generateNamedSum :: TypeName -> Analyzer.NamedSumProps -> [[GeneratedCode]]
+generateNamedSum :: TypeName -> Raml.NamedSumProps -> [[GeneratedCode]]
 generateNamedSum typeName namedSum =
     [ generateBranches typeName namedSum
     , accompanyBranches typeName namedSum
     ]
 
-generateNamedProduct :: TypeName -> Analyzer.NamedProductProps -> [[GeneratedCode]]
+generateNamedProduct :: TypeName -> Raml.NamedProductProps -> [[GeneratedCode]]
 generateNamedProduct typeName namedProduct =
     [ generateProductClass typeName namedProduct
     , accompanyProductClass typeName namedProduct
     ]
 
-generateTypeProps :: TypeName -> Analyzer.TypeProps -> [[GeneratedCode]]
-generateTypeProps typeName (Analyzer.NamedSumTypeProps namedSum) =
+generateTypeProps :: TypeName -> Raml.TypeProps -> [[GeneratedCode]]
+generateTypeProps typeName (Raml.NamedSumTypeProps namedSum) =
     generateNamedSum typeName namedSum
-generateTypeProps typeName (Analyzer.NamedProductTypeProps namedProduct) =
+generateTypeProps typeName (Raml.NamedProductTypeProps namedProduct) =
     generateNamedProduct typeName namedProduct
 
 
 -- |
--- >>> import Raml.Parser
--- >>> import Raml.Normalizer
--- >>> import Raml.Classifier
--- >>> import Raml.Analyzer
--- >>> r <- generate <$> analyze <$> classify <$> normalize <$> parse <$> readYaml "tests/sample.in"
+-- >>> import Raml
+-- >>> r <- generate <$> readRaml "tests/sample.in"
 -- >>> printAsYaml r
 -- - - - trait:
 --         name: DataType
@@ -339,8 +335,8 @@ generateTypeProps typeName (Analyzer.NamedProductTypeProps namedProduct) =
 --             type: DataType
 --   - - companion_object:
 --         name: Field
-generate :: AnalyzedTree -> GeneratedTree
+generate :: Raml -> GeneratedTree
 generate = GeneratedTree
          . map (uncurry generateTypeProps)
          . AList.toList
-         . unAnalyzedTree
+         . Raml.unAnalyzedTree

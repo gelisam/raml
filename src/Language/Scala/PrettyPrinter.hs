@@ -6,6 +6,7 @@ import Text.Printf
 import Data.IndentedCode
 import Language.Scala.Generator
 
+
 singleBlank :: IndentedCode
 singleBlank = [Line ""]
 
@@ -132,14 +133,10 @@ prettyPrintGeneratedCode (GeneratedCompanionObject companionObject) =
     prettyPrintCompanionObject companionObject
 
 -- |
--- >>> import Data.Yaml.Ordered.MyExtra
--- >>> import Raml.Parser
--- >>> import Raml.Normalizer
--- >>> import Raml.Classifier
--- >>> import Raml.Analyzer
--- >>> import Raml.Generator
--- >>> import Raml.Simplifier
--- >>> r <- prettyPrint <$> simplify <$> generate <$> analyze <$> classify <$> normalize <$> parse <$> readYaml "tests/sample.in"
+-- >>> import Raml
+-- >>> import Language.Scala.Generator
+-- >>> import Language.Scala.Simplifier
+-- >>> r <- prettyPrint <$> simplify <$> generate <$> readRaml "tests/sample.in"
 -- >>> printIndented r
 -- sealed trait DataType
 -- case object StringType extends DataType

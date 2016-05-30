@@ -49,6 +49,7 @@ library
                      , Language.Scala.Name
                      , Language.Scala.PrettyPrinter
                      , Language.Scala.Simplifier
+                     , Raml
                      , Raml.Analyzer
                      , Raml.Classifier
                      , Raml.Common

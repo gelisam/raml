@@ -1,8 +1,11 @@
 module Language.Scala.Name where
 
 import qualified Data.String.MyExtra as String
-import Raml.Common
+import qualified Raml as Raml
 
+
+type TypeName = Raml.TypeName
+type ValName = String
 
 data Name
   = Name String
@@ -33,7 +36,7 @@ capitalize (PrefixedName prefix s) = PrefixedName (String.capitalize prefix) s
 capitalize (QualifiedName qualifier s) = QualifiedName qualifier (capitalize s)
 
 
-type CompanionNamer = PropertyName -> String -> Name
+type CompanionNamer = Raml.PropertyName -> String -> Name
 
 qualifiedCompanionNamer :: TypeName -> CompanionNamer
 qualifiedCompanionNamer companionName fieldName varName =
