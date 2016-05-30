@@ -32,7 +32,8 @@ instance ParseRecord CompilationOptions
 
 compile :: CompilationOptions -> IO ()
 compile (CompilationOptions {..}) = do
-    r <- (addPackage `maybeAp` packageName)
+    r <- layoutGroupedCode
+     <$> (addPackage `maybeAp` packageName)
      <$> prettyPrint
      <$> simplify
      <$> generate

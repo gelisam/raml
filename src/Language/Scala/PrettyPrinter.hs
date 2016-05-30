@@ -129,7 +129,7 @@ prettyPrintGeneratedCode (GeneratedCompanionObject companionObject) =
 -- >>> import Raml
 -- >>> import Language.Scala.Generator
 -- >>> import Language.Scala.Simplifier
--- >>> r <- prettyPrint <$> simplify <$> generate <$> readRaml "tests/sample.in"
+-- >>> r <- layoutGroupedCode <$> prettyPrint <$> simplify <$> generate <$> readRaml "tests/sample.in"
 -- >>> printIndented r
 -- sealed trait DataType
 -- case object StringType extends DataType
@@ -155,7 +155,7 @@ prettyPrintGeneratedCode (GeneratedCompanionObject companionObject) =
 --   name: String,
 --   dataType: DataType
 -- )
-prettyPrint :: GeneratedTree -> [[IndentedCode]]
+prettyPrint :: GeneratedTree -> GroupedCode
 prettyPrint = (map . map) concat
             . (map . map . map) prettyPrintGeneratedCode
             . unGeneratedTree

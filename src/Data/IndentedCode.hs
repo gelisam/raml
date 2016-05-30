@@ -13,6 +13,7 @@ data CodeChunk
   | Indented IndentedCode
   deriving (Show, Eq)
 
+
 instance ToJSON CodeChunk where
   toJSON (Line x) = YamlString x
   toJSON (Indented xs) = toJSON xs
@@ -24,10 +25,8 @@ singleBlank = [Line ""]
 doubleBlank :: IndentedCode
 doubleBlank = [Line "", Line ""]
 
-printIndented :: [[IndentedCode]] -> IO ()
+printIndented :: IndentedCode -> IO ()
 printIndented = go ""
-              . intercalate doubleBlank
-              . map (intercalate singleBlank)
   where
     go :: String -> IndentedCode -> IO ()
     go indent = mapM_ (printBlock indent)
@@ -35,3 +34,10 @@ printIndented = go ""
     printBlock :: String -> CodeChunk -> IO ()
     printBlock indent (Line s) = putStr indent >> putStrLn s
     printBlock indent (Indented ss) = go ("  " ++ indent) ss
+
+
+type GroupedCode = [[IndentedCode]]
+
+layoutGroupedCode :: GroupedCode -> IndentedCode
+layoutGroupedCode = intercalate doubleBlank
+                  . map (intercalate singleBlank)
