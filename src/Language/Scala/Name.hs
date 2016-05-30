@@ -1,44 +1,44 @@
-module Raml.ScalaName where
+module Language.Scala.Name where
 
 import qualified Data.String.MyExtra as String
 import Raml.Common
 
 
-data ScalaName
-  = ScalaName String
-  | PrefixedName String ScalaName
-  | QualifiedName TypeName ScalaName
+data Name
+  = Name String
+  | PrefixedName String Name
+  | QualifiedName TypeName Name
   deriving (Show, Eq)
 
-nameToString :: ScalaName -> String
-nameToString (ScalaName s) = s
+nameToString :: Name -> String
+nameToString (Name s) = s
 nameToString (PrefixedName prefix s) = prefix String.+++ nameToString s
 nameToString (QualifiedName qualifier s) = qualifier String..++ nameToString s
 
 infixr 4 +++
-(+++) :: String -> ScalaName -> ScalaName
+(+++) :: String -> Name -> Name
 (+++) = PrefixedName
 
 infixr 4 .++
-(.++) :: String -> ScalaName -> ScalaName
+(.++) :: String -> Name -> Name
 (.++) = QualifiedName
 
 
 -- |
--- >>> nameToString $ capitalize $ "Foo" .++ "bar" +++ ScalaName "baz"
+-- >>> nameToString $ capitalize $ "Foo" .++ "bar" +++ Name "baz"
 -- "Foo.BarBaz"
-capitalize :: ScalaName -> ScalaName
-capitalize (ScalaName s) = ScalaName (String.capitalize s)
+capitalize :: Name -> Name
+capitalize (Name s) = Name (String.capitalize s)
 capitalize (PrefixedName prefix s) = PrefixedName (String.capitalize prefix) s
 capitalize (QualifiedName qualifier s) = QualifiedName qualifier (capitalize s)
 
 
-type CompanionNamer = PropertyName -> String -> ScalaName
+type CompanionNamer = PropertyName -> String -> Name
 
 qualifiedCompanionNamer :: TypeName -> CompanionNamer
 qualifiedCompanionNamer companionName fieldName varName =
-    companionName .++ fieldName +++ ScalaName varName
+    companionName .++ fieldName +++ Name varName
 
 unqualifiedCompanionNamer :: CompanionNamer
 unqualifiedCompanionNamer fieldName varName =
-    fieldName +++ ScalaName varName
+    fieldName +++ Name varName

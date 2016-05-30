@@ -1,10 +1,10 @@
-module Raml.PrettyPrinter where
+module Language.Scala.PrettyPrinter where
 
 import Data.List
 import Text.Printf
 
 import Data.IndentedCode
-import Raml.Generator
+import Language.Scala.Generator
 
 singleBlank :: IndentedCode
 singleBlank = [Line ""]

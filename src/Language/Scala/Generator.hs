@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Raml.Generator where
+module Language.Scala.Generator where
 
 import Data.Maybe
 import           Data.AList (AList)
@@ -10,8 +10,8 @@ import Text.Printf
 import Data.Empty
 import Data.IndentedCode
 import Data.Yaml.Ordered.MyExtra
+import Language.Scala.Name
 import Raml.Common
-import Raml.ScalaName
 import           Raml.Analyzer (AnalyzedTree(..))
 import qualified Raml.Analyzer as Analyzer
 
@@ -142,7 +142,7 @@ generateStringFieldRequirement companionNamer fieldName_ _ =
     , Line "}"
     ]
   where
-    patternVar :: ScalaName
+    patternVar :: Name
     patternVar = capitalize (companionNamer fieldName_ "pattern")
 
 accompanyStringFieldRequirement :: CompanionNamer

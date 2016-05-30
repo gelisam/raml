@@ -1,9 +1,9 @@
-module Raml.Simplifier where
+module Language.Scala.Simplifier where
 
 import Prelude hiding (null)
 
 import Data.Empty
-import Raml.Generator
+import Language.Scala.Generator
 
 
 class Simplify a where

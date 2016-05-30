@@ -45,15 +45,15 @@ library
                      , Data.Yaml.Ordered.MyExtra
                      , Data.Yaml.Ordered.Parser
                      , Data.Yaml.Ordered.Pretty
+                     , Language.Scala.Generator
+                     , Language.Scala.Name
+                     , Language.Scala.PrettyPrinter
+                     , Language.Scala.Simplifier
                      , Raml.Analyzer
                      , Raml.Classifier
                      , Raml.Common
-                     , Raml.Generator
                      , Raml.Normalizer
                      , Raml.Parser
-                     , Raml.PrettyPrinter
-                     , Raml.ScalaName
-                     , Raml.Simplifier
                      , Raml.UsageCounter
   -- other-modules:       
   -- other-extensions:    

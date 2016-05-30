@@ -9,9 +9,9 @@ import Raml.Parser
 import Raml.Normalizer
 import Raml.Classifier
 import Raml.Analyzer
-import Raml.Generator
-import Raml.Simplifier
-import Raml.PrettyPrinter
+import Language.Scala.Generator
+import Language.Scala.Simplifier
+import Language.Scala.PrettyPrinter
 import Data.IndentedCode
 
 
