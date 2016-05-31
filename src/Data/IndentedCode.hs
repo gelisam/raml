@@ -1,3 +1,4 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Data.IndentedCode where
 
 import Data.List
@@ -6,12 +7,93 @@ import Data.Yaml.Ordered (ToJSON(..))
 import Data.Yaml.Ordered.MyExtra
 
 
-type IndentedCode = [CodeChunk]
+-- This is a Line,
+--   this is an
+--   Indented block,
+-- this is a second line,
+--   this is a second indented block
+--   consisting of four lines,
+--   
+--   one of which is blank,
+-- and this is a third line.
+-- 
+-- The above lines and indented blocks are grouped in a single CodeBlock.
+-- These two lines are part of a second CodeBlock.
+-- 
+-- 
+-- The last two blocks together are clumped in a CodeGroup.
+-- This block
+-- 
+-- and this block
+-- 
+-- and this block
+-- are all clumped into a second CodeGroup.
+-- 
+-- 
+-- This third group completes the example.
+-- Together, all three groups are clumped in a single CodeLayout.
+
+
+-- $setup
+-- >>> :{
+--   let codeLayout =
+--         CodeLayout
+--         [ CodeGroup
+--           [ CodeBlock
+--             [ Line "This is a Line,"
+--             , Indented $ CodeBlock
+--               [ Line "this is an"
+--               , Line "Indented block,"
+--               ]
+--             , Line "this is a second line,"
+--             , Indented $ CodeBlock
+--               [ Line "this is a second indented block"
+--               , Line "consisting of four lines,"
+--               , Line ""
+--               , Line "one of which is blank,"
+--               ]
+--             , Line "and this is a third line."
+--             ]
+--           , multiLineBlock
+--             [ "The above lines and indented blocks are grouped in a single CodeBlock."
+--             , "These two lines are part of a second CodeBlock."
+--             ]
+--           ]
+--         , multiBlockGroup
+--           [ multiLineBlock
+--             [ "The last two blocks together are clumped in a CodeGroup."
+--             , "This block"
+--             ]
+--           , singleLineBlock "and this block"
+--           , multiLineBlock
+--             [ "and this block"
+--             , "are all clumped into a second CodeGroup."
+--             ]
+--           ]
+--         , multiLineGroup
+--           [ "This third group completes the example."
+--           , "Together, all three groups are clumped in a single CodeLayout."
+--           ]
+--         ]
+-- :}
+
 
 data CodeChunk
   = Line String
-  | Indented IndentedCode
+  | Indented CodeBlock
   deriving (Show, Eq)
+
+newtype CodeBlock = CodeBlock
+  { runCodeBlock :: [CodeChunk]
+  } deriving (Show, Eq, Monoid, ToJSON)
+
+newtype CodeGroup = CodeGroup
+  { runCodeGroup :: [CodeBlock]
+  } deriving (Show, Eq, Monoid, ToJSON)
+
+newtype CodeLayout = CodeLayout
+  { runCodeLayout :: [CodeGroup]
+  } deriving (Show, Eq, Monoid, ToJSON)
 
 
 instance ToJSON CodeChunk where
@@ -19,47 +101,132 @@ instance ToJSON CodeChunk where
   toJSON (Indented xs) = toJSON xs
 
 
-unindentedLine :: String -> IndentedCode
-unindentedLine s = [Line s]
+singleLineBlock :: String -> CodeBlock
+singleLineBlock s = CodeBlock [Line s]
 
-unindentedLines :: [String] -> IndentedCode
-unindentedLines = foldMap unindentedLine
+multiLineBlock :: [String] -> CodeBlock
+multiLineBlock = CodeBlock
+               . foldMap (runCodeBlock . singleLineBlock)
 
 
-printIndented :: IndentedCode -> IO ()
-printIndented = go ""
+singleBlockGroup :: CodeBlock -> CodeGroup
+singleBlockGroup = CodeGroup . return
+
+multiBlockGroup :: [CodeBlock] -> CodeGroup
+multiBlockGroup = CodeGroup
+
+singleLineGroup :: String -> CodeGroup
+singleLineGroup = singleBlockGroup . singleLineBlock
+
+multiLineGroup :: [String] -> CodeGroup
+multiLineGroup = singleBlockGroup . multiLineBlock
+
+
+singleGroupLayout :: CodeGroup -> CodeLayout
+singleGroupLayout = CodeLayout . return
+
+multiGroupLayout :: [CodeGroup] -> CodeLayout
+multiGroupLayout = CodeLayout
+
+singleBlockLayout :: CodeBlock -> CodeLayout
+singleBlockLayout = singleGroupLayout . singleBlockGroup
+
+multiBlockLayout :: [CodeBlock] -> CodeLayout
+multiBlockLayout = singleGroupLayout . multiBlockGroup
+
+singleLineLayout :: String -> CodeLayout
+singleLineLayout = singleGroupLayout . singleLineGroup
+
+multiLineLayout :: [String] -> CodeLayout
+multiLineLayout = singleGroupLayout . multiLineGroup
+
+
+flattenGroup :: CodeGroup -> CodeBlock
+flattenGroup = CodeBlock
+             . intercalate [Line ""]
+             . filter (not . null)
+             . map runCodeBlock
+             . runCodeGroup
+
+flattenLayout :: CodeLayout -> CodeBlock
+flattenLayout = CodeBlock
+              . intercalate [Line "", Line ""]
+              . filter (not . null)
+              . map (runCodeBlock . flattenGroup)
+              . runCodeLayout
+
+
+-- |
+-- >>> printBlock $ flattenLayout codeLayout
+-- This is a Line,
+--   this is an
+--   Indented block,
+-- this is a second line,
+--   this is a second indented block
+--   consisting of four lines,
+-- <BLANKLINE>
+--   one of which is blank,
+-- and this is a third line.
+-- <BLANKLINE>
+-- The above lines and indented blocks are grouped in a single CodeBlock.
+-- These two lines are part of a second CodeBlock.
+-- <BLANKLINE>
+-- <BLANKLINE>
+-- The last two blocks together are clumped in a CodeGroup.
+-- This block
+-- <BLANKLINE>
+-- and this block
+-- <BLANKLINE>
+-- and this block
+-- are all clumped into a second CodeGroup.
+-- <BLANKLINE>
+-- <BLANKLINE>
+-- This third group completes the example.
+-- Together, all three groups are clumped in a single CodeLayout.
+printBlock :: CodeBlock -> IO ()
+printBlock = go ""
   where
-    go :: String -> IndentedCode -> IO ()
-    go indent = mapM_ (printBlock indent)
+    go :: String -> CodeBlock -> IO ()
+    go indent = mapM_ (printChunk indent) . runCodeBlock
     
-    printBlock :: String -> CodeChunk -> IO ()
-    printBlock indent (Line s) = putStr indent >> putStrLn s
-    printBlock indent (Indented ss) = go ("  " ++ indent) ss
+    printChunk :: String -> CodeChunk -> IO ()
+    printChunk indent (Line s) = putStr indent >> putStrLn s
+    printChunk indent (Indented ss) = go ("  " ++ indent) ss
 
-
-type GroupedCode = [[IndentedCode]]
-
-singleBlank :: IndentedCode
-singleBlank = [Line ""]
-
-doubleBlank :: IndentedCode
-doubleBlank = [Line "", Line ""]
-
-layoutGroupedCode :: GroupedCode -> IndentedCode
-layoutGroupedCode = intercalate doubleBlank
-                  . map (intercalate singleBlank . filter (not . null))
-                  . filter (not . null)
-
-testGroupedCode :: GroupedCode -> IO ()
-testGroupedCode = printIndented . go
+-- |
+-- >>> testBlock $ flattenLayout codeLayout
+-- This is a Line,
+--   this is an
+--   Indented block,
+-- this is a second line,
+--   this is a second indented block
+--   consisting of four lines,
+--   .
+--   one of which is blank,
+-- and this is a third line.
+-- .
+-- The above lines and indented blocks are grouped in a single CodeBlock.
+-- These two lines are part of a second CodeBlock.
+-- .
+-- .
+-- The last two blocks together are clumped in a CodeGroup.
+-- This block
+-- .
+-- and this block
+-- .
+-- and this block
+-- are all clumped into a second CodeGroup.
+-- .
+-- .
+-- This third group completes the example.
+-- Together, all three groups are clumped in a single CodeLayout.
+testBlock :: CodeBlock -> IO ()
+testBlock = printBlock . clarifyBlock
   where
-    go :: GroupedCode -> IndentedCode
-    go = intercalate doubleDot
-       . map (intercalate singleDot . filter (not . null))
-       . filter (not . null)
+    clarifyBlock :: CodeBlock -> CodeBlock
+    clarifyBlock = CodeBlock . map clarifyChunk . runCodeBlock
     
-    singleDot :: IndentedCode
-    singleDot = [Line "."]
-    
-    doubleDot :: IndentedCode
-    doubleDot = [Line ".", Line "."]
+    clarifyChunk :: CodeChunk -> CodeChunk
+    clarifyChunk (Line "") = Line "."
+    clarifyChunk (Line x) = Line x
+    clarifyChunk (Indented xs) = Indented (clarifyBlock xs)

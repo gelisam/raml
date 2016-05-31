@@ -131,9 +131,9 @@ generateStringFieldRequirement :: CompanionNamer
                                -> Raml.StringFieldProps
                                -> CodeChunk
 generateStringFieldRequirement companionNamer fieldName_ _ =
-    Indented
+    Indented $ CodeBlock
     [ Line $ printf "%s match {" fieldName_
-    , Indented
+    , Indented $ CodeBlock
       [ Line $ printf "case %s() => true"
                                 (nameToString patternVar)
       , Line "case _ => false"

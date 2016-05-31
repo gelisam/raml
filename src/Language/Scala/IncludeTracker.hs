@@ -1,6 +1,7 @@
 module Language.Scala.IncludeTracker where
 
 import Control.Monad.Trans.Writer.Strict
+import Data.Monoid
 import           Data.Set (Set)
 import qualified Data.Set as Set
 import Text.Printf
@@ -25,10 +26,8 @@ qualifiedName packageName typeName = do
 -- |
 -- >>> import Data.List
 -- >>> :{
---   let addValues :: [TypeName] -> GroupedCode
---       addValues = return
---                 . return
---                 . unindentedLine
+--   let addValues :: [TypeName] -> CodeLayout
+--       addValues = singleLineLayout
 --                 . intercalate " + "
 --                 . fmap (printf "%s.value")
 -- :}
@@ -37,14 +36,14 @@ qualifiedName packageName typeName = do
 -- >>> let bar = qualifiedName "com.gelisam" "Bar"
 -- >>> let groupedCode = addValues <$> sequence [foo, bar, foo]
 -- 
--- >>> testGroupedCode $ runIncludeTracker Nothing groupedCode
+-- >>> testBlock $ flattenLayout $ runIncludeTracker Nothing groupedCode
 -- import com.gelisam.Bar
 -- import com.gelisam.Foo
 -- .
 -- .
 -- Foo.value + Bar.value + Foo.value
 -- 
--- >>> testGroupedCode $ runIncludeTracker (Just "com.gelisam.adder") groupedCode
+-- >>> testBlock $ flattenLayout $ runIncludeTracker (Just "com.gelisam.adder") groupedCode
 -- package com.gelisam.adder
 -- .
 -- import com.gelisam.Bar
@@ -53,12 +52,12 @@ qualifiedName packageName typeName = do
 -- .
 -- Foo.value + Bar.value + Foo.value
 runIncludeTracker :: Maybe PackageName
-                  -> IncludeTracker GroupedCode
-                  -> GroupedCode
+                  -> IncludeTracker CodeLayout
+                  -> CodeLayout
 runIncludeTracker packageName = uncurry go . runWriter
   where
-    go :: GroupedCode -> Includes -> GroupedCode
-    go code includes = [packageBlock, includeBlock] : code
+    go :: CodeLayout -> Includes -> CodeLayout
+    go codeLayout includes = multiBlockLayout [packageBlock, includeBlock] <> codeLayout
       where
         packageLine :: Maybe String
         packageLine = printf "package %s" <$> packageName
@@ -66,10 +65,10 @@ runIncludeTracker packageName = uncurry go . runWriter
         includeLine :: IncludeName -> String
         includeLine = printf "import %s"
         
-        packageBlock :: IndentedCode
-        packageBlock = maybe [] unindentedLine packageLine
+        packageBlock :: CodeBlock
+        packageBlock = maybe mempty singleLineBlock packageLine
         
-        includeBlock :: IndentedCode
-        includeBlock = unindentedLines
+        includeBlock :: CodeBlock
+        includeBlock = multiLineBlock
                      $ map includeLine
                      $ Set.toList includes

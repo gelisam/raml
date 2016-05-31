@@ -25,7 +25,7 @@ instance ParseRecord CompilationOptions
 
 compile :: CompilationOptions -> IO ()
 compile (CompilationOptions {..}) = do
-    r <- layoutGroupedCode
+    r <- flattenLayout
      <$> runIncludeTracker packageName
      <$> return
      <$> prettyPrint
@@ -36,7 +36,7 @@ compile (CompilationOptions {..}) = do
      <$> normalize
      <$> parse
      <$> readYaml (Path.encodeString ramlFile)
-    printIndented r
+    printBlock r
 
 main :: IO ()
 main = getRecord "Generate Scala types corresponding to the given RAML types." >>= compile

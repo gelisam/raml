@@ -1,106 +1,107 @@
 module Language.Scala.PrettyPrinter where
 
-import Data.List
+import Data.Monoid
 import Text.Printf
 
 import Data.IndentedCode
 import Language.Scala.Generator
 
 
-prependPrefix :: String -> IndentedCode -> IndentedCode
-prependPrefix prefix = go
+prependPrefix :: String -> CodeBlock -> CodeBlock
+prependPrefix prefix = CodeBlock . go . runCodeBlock
   where
-    go :: IndentedCode -> IndentedCode
+    go :: [CodeChunk] -> [CodeChunk]
     go [] = error "can't prepend a prefix to an empty block"
     go [Line s] = [Line (prefix ++ s)]
-    go [Indented xs] = [Indented (go xs)]
+    go [Indented xs] = [Indented (prependPrefix prefix xs)]
     go (x:xs) = x : go xs
 
-appendSuffix :: String -> IndentedCode -> IndentedCode
-appendSuffix suffix = go
+appendSuffix :: String -> CodeBlock -> CodeBlock
+appendSuffix suffix = CodeBlock . go . runCodeBlock
   where
-    go :: IndentedCode -> IndentedCode
+    go :: [CodeChunk] -> [CodeChunk]
     go [] = error "can't append a suffix to an empty block"
     go [Line s] = [Line (s ++ suffix)]
-    go [Indented xs] = [Indented (go xs)]
+    go [Indented xs] = [Indented (appendSuffix suffix xs)]
     go (x:xs) = x : go xs
 
-intercalateComma :: [IndentedCode] -> IndentedCode
-intercalateComma [] = []
+intercalateComma :: [CodeBlock] -> CodeBlock
+intercalateComma [] = mempty
 intercalateComma [x] = x
-intercalateComma (x:xs) = appendSuffix "," x ++ intercalateComma xs
+intercalateComma (x:xs) = appendSuffix "," x <> intercalateComma xs
 
 
-prettyPrintField :: Field -> IndentedCode
-prettyPrintField (Field name type_) =
+prettyPrintField :: Field -> CodeBlock
+prettyPrintField (Field name type_) = CodeBlock
     [ Line $ printf "%s: %s" name type_
     ]
 
-prettyPrintFields :: [Field] -> IndentedCode
+prettyPrintFields :: [Field] -> CodeBlock
 prettyPrintFields = intercalateComma
                   . map prettyPrintField
 
 
-prettyPrintRequirement :: CodeChunk -> IndentedCode
-prettyPrintRequirement (Line s) =
+prettyPrintRequirement :: CodeChunk -> CodeBlock
+prettyPrintRequirement (Line s) = CodeBlock
     [ Line $ printf "require(%s)" s
     ]
-prettyPrintRequirement (Indented ss) =
+prettyPrintRequirement (Indented ss) = CodeBlock
     [ Line "require("
     , Indented ss
     , Line ")"
     ]
 
-prettyPrintRequirements :: [CodeChunk] -> IndentedCode
-prettyPrintRequirements = intercalate singleBlank
+prettyPrintRequirements :: [CodeChunk] -> CodeBlock
+prettyPrintRequirements = flattenGroup
+                        . multiBlockGroup
                         . map prettyPrintRequirement
 
 
-prettyPrintVal :: Val -> IndentedCode
-prettyPrintVal (Val name (Line value)) =
+prettyPrintVal :: Val -> CodeBlock
+prettyPrintVal (Val name (Line value)) = CodeBlock
     [ Line $ printf "val %s = %s" name value
     ]
-prettyPrintVal (Val name (Indented xs)) =
+prettyPrintVal (Val name (Indented xs)) = CodeBlock
     [ Line $ printf "val %s =" name
     , Indented xs
     ]
 
-prettyPrintVals :: [Val] -> IndentedCode
-prettyPrintVals = concatMap prettyPrintVal
+prettyPrintVals :: [Val] -> CodeBlock
+prettyPrintVals = foldMap prettyPrintVal
 
 
-prettyPrintTrait :: Trait -> IndentedCode
-prettyPrintTrait (Trait name) =
+prettyPrintTrait :: Trait -> CodeBlock
+prettyPrintTrait (Trait name) = CodeBlock
     [ Line $ printf "sealed trait %s" name
     ]
 
-prettyPrintCaseObject :: CaseObject -> IndentedCode
-prettyPrintCaseObject (CaseObject name Nothing) =
+prettyPrintCaseObject :: CaseObject -> CodeBlock
+prettyPrintCaseObject (CaseObject name Nothing) = CodeBlock
     [ Line $ printf "case object %s" name
     ]
-prettyPrintCaseObject (CaseObject name (Just parentName)) =
+prettyPrintCaseObject (CaseObject name (Just parentName)) = CodeBlock
     [ Line $ printf "case object %s extends %s" name parentName
     ]
 
-prettyPrintCaseClass :: CaseClass -> IndentedCode
-prettyPrintCaseClass (CaseClass name Nothing fields []) =
+prettyPrintCaseClass :: CaseClass -> CodeBlock
+prettyPrintCaseClass (CaseClass name Nothing fields []) = CodeBlock
     [ Line $ printf "case class %s(" name
     , Indented $ prettyPrintFields fields
     , Line ")"
     ]
-prettyPrintCaseClass (CaseClass name (Just parentName) fields []) =
+prettyPrintCaseClass (CaseClass name (Just parentName) fields []) = CodeBlock
     [ Line $ printf "case class %s(" name
     , Indented $ prettyPrintFields fields
     , Line $ printf ") extends %s" parentName
     ]
-prettyPrintCaseClass (CaseClass name Nothing fields reqs) =
+prettyPrintCaseClass (CaseClass name Nothing fields reqs) = CodeBlock
     [ Line $ printf "case class %s(" name
     , Indented $ prettyPrintFields fields
     , Line ") {"
     , Indented $ prettyPrintRequirements reqs
     , Line "}"
     ]
-prettyPrintCaseClass (CaseClass name (Just parentName) fields reqs) =
+prettyPrintCaseClass (CaseClass name (Just parentName) fields reqs) = CodeBlock
     [ Line $ printf "case class %s(" name
     , Indented $ prettyPrintFields fields
     , Line $ printf ") extends %s {" parentName
@@ -108,14 +109,14 @@ prettyPrintCaseClass (CaseClass name (Just parentName) fields reqs) =
     , Line "}"
     ]
 
-prettyPrintCompanionObject :: CompanionObject -> IndentedCode
-prettyPrintCompanionObject (CompanionObject name vals) =
+prettyPrintCompanionObject :: CompanionObject -> CodeBlock
+prettyPrintCompanionObject (CompanionObject name vals) = CodeBlock
     [ Line $ printf "object %s {" name
     , Indented $ prettyPrintVals vals
     , Line $ "}"
     ]
 
-prettyPrintGeneratedCode :: GeneratedCode -> IndentedCode
+prettyPrintGeneratedCode :: GeneratedCode -> CodeBlock
 prettyPrintGeneratedCode (GeneratedTrait trait) =
     prettyPrintTrait trait
 prettyPrintGeneratedCode (GeneratedCaseObject caseObject) =
@@ -129,8 +130,8 @@ prettyPrintGeneratedCode (GeneratedCompanionObject companionObject) =
 -- >>> import Raml
 -- >>> import Language.Scala.Generator
 -- >>> import Language.Scala.Simplifier
--- >>> r <- prettyPrint <$> simplify <$> generate <$> readRaml "tests/sample.in"
--- >>> testGroupedCode r
+-- >>> r <- flattenLayout <$> prettyPrint <$> simplify <$> generate <$> readRaml "tests/sample.in"
+-- >>> testBlock r
 -- sealed trait DataType
 -- case object StringType extends DataType
 -- case object NumberType extends DataType
@@ -155,7 +156,8 @@ prettyPrintGeneratedCode (GeneratedCompanionObject companionObject) =
 --   name: String,
 --   dataType: DataType
 -- )
-prettyPrint :: GeneratedTree -> GroupedCode
-prettyPrint = (map . map) concat
-            . (map . map . map) prettyPrintGeneratedCode
+prettyPrint :: GeneratedTree -> CodeLayout
+prettyPrint = CodeLayout
+            . map CodeGroup
+            . (map . map . foldMap) prettyPrintGeneratedCode
             . unGeneratedTree
