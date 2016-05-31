@@ -4,6 +4,7 @@ module Data.IndentedCode where
 import Data.List
 import Data.Yaml.Ordered (ToJSON(..))
 
+import Data.List.MyExtra
 import Data.Yaml.Ordered.MyExtra
 
 
@@ -154,6 +155,55 @@ flattenLayout = CodeBlock
               . filter (not . null)
               . map (runCodeBlock . flattenGroup)
               . runCodeLayout
+
+-- |
+-- separate by a single blank instead of a double blank, if reasonable.
+-- 
+-- >>> let wrapFoo block = CodeBlock [Line "foo {", Indented block, Line "}"]
+-- >>> let simpleLayout = CodeLayout [singleLineGroup "bar", singleLineGroup "baz"]
+-- >>> let complexLayout = CodeLayout [singleLineGroup "bar", CodeGroup [singleLineBlock "baz", singleLineBlock "quux"]]
+-- 
+-- This looks silly:
+-- >>> testBlock $ wrapFoo $ flattenLayout simpleLayout
+-- foo {
+--   bar
+--   .
+--   .
+--   baz
+-- }
+-- 
+-- This is more reasonable:
+-- >>> testBlock $ wrapFoo $ flattenLayout $ simplifyLayout simpleLayout
+-- foo {
+--   bar
+--   .
+--   baz
+-- }
+-- 
+-- But it wouldn't be reasonable to simplify here:
+-- >>> testBlock $ wrapFoo $ flattenLayout $ simplifyLayout complexLayout
+-- foo {
+--   bar
+--   .
+--   .
+--   baz
+--   .
+--   quux
+-- }
+simplifyLayout :: CodeLayout -> CodeLayout
+simplifyLayout codeLayout | hasOnlyDoubleBlanks codeLayout = useSingleBlanks codeLayout
+                          | otherwise                      = codeLayout
+  where
+    hasSingleBlanks :: CodeGroup -> Bool
+    hasSingleBlanks = (> 1) . length . runCodeGroup
+    
+    hasOnlyDoubleBlanks :: CodeLayout -> Bool
+    hasOnlyDoubleBlanks = none hasSingleBlanks . runCodeLayout
+    
+    useSingleBlanks :: CodeLayout -> CodeLayout
+    useSingleBlanks = multiBlockLayout
+                    . foldMap runCodeGroup
+                    . runCodeLayout
 
 
 -- |

@@ -35,6 +35,7 @@ library
                      , Data.Empty
                      , Data.Maybe.MyExtra
                      , Data.IndentedCode
+                     , Data.List.MyExtra
                      , Data.String.MyExtra
                      , Data.Yaml.Ordered
                      , Data.Yaml.Ordered.Aeson
