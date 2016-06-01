@@ -51,6 +51,7 @@ library
                      , Language.Scala.IncludeTracker
                      , Language.Scala.Name
                      , Language.Scala.PrettyPrinter
+                     , Language.Scala.ScalaTree
                      , Language.Scala.Simplifier
                      , Raml
                      , Raml.Analyzer
