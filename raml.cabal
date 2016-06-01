@@ -46,6 +46,7 @@ library
                      , Data.Yaml.Ordered.MyExtra
                      , Data.Yaml.Ordered.Parser
                      , Data.Yaml.Ordered.Pretty
+                     , Language.Scala.Converter
                      , Language.Scala.Generator
                      , Language.Scala.IncludeTracker
                      , Language.Scala.Name
