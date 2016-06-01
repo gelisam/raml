@@ -50,6 +50,7 @@ library
                      , Language.Scala.Generator
                      , Language.Scala.IncludeTracker
                      , Language.Scala.Name
+                     , Language.Scala.Overlay
                      , Language.Scala.PrettyPrinter
                      , Language.Scala.ScalaTree
                      , Language.Scala.Simplifier
