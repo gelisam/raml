@@ -7,33 +7,40 @@ import           Raml (Raml)
 import qualified Raml as Raml
 
 
-type ConvertedTree = ScalaTree () () () ()
+type FieldAnnotation = Maybe Raml.StringFieldProps
+
+type ConvertedTree = ScalaTree () () FieldAnnotation ()
 
 
-convertFieldType :: Raml.Field -> Unannotated TypeName
-convertFieldType (Raml.RegularField typeName) = unannotated typeName
-convertFieldType (Raml.BuiltinField Raml.String) = unannotated "String"
-convertFieldType (Raml.CustomStringField _) = unannotated "String"
+convertFieldType :: Raml.Field
+                 -> (TypeName, FieldAnnotation)
+convertFieldType (Raml.RegularField typeName) = (typeName, Nothing)
+convertFieldType (Raml.BuiltinField Raml.String) = ("String", Nothing)
+convertFieldType (Raml.CustomStringField extra) = ("String", Just extra)
 
-convertProduct :: Raml.NamedProductProps -> Unannotated (ProductProps ())
+convertProduct :: Raml.NamedProductProps
+               -> Unannotated (ProductProps FieldAnnotation)
 convertProduct = unannotated
                . ProductProps
                . fmap convertFieldType
                . Raml.productFields
 
-convertBranch :: Raml.BranchProps -> Unannotated (BranchProps ())
+convertBranch :: Raml.BranchProps
+              -> Unannotated (BranchProps FieldAnnotation)
 convertBranch = unannotated
               . BranchProps
               . fmap convertFieldType
               . Raml.branchFields
 
-convertSum :: Raml.NamedSumProps -> Unannotated (SumProps () ())
+convertSum :: Raml.NamedSumProps
+           -> Unannotated (SumProps FieldAnnotation ())
 convertSum = unannotated
            . SumProps
            . fmap convertBranch
            . Raml.sumBranches
 
-convertTypeProps :: Raml.TypeProps -> TopLevelType () () () ()
+convertTypeProps :: Raml.TypeProps
+                 -> TopLevelType () () FieldAnnotation ()
 convertTypeProps (Raml.NamedProductTypeProps namedProduct) =
     TopLevelProduct (convertProduct namedProduct)
 convertTypeProps (Raml.NamedSumTypeProps namedSum) =
@@ -56,7 +63,8 @@ convertTypeProps (Raml.NamedSumTypeProps namedSum) =
 --   - fields:
 --       dateFormat:
 --       - String
---       - []
+--       - type: string
+--         pattern: ! '[YMD]+[-\.][YMD]+[-\.\/][YMD]+'
 --   - []
 --   BooleanType:
 --   - fields: {}
@@ -66,10 +74,10 @@ convertTypeProps (Raml.NamedSumTypeProps namedSum) =
 -- - fields:
 --     name:
 --     - String
---     - []
+--     - null
 --     dataType:
 --     - DataType
---     - []
+--     - null
 -- - []
 convert :: Raml -> ConvertedTree
 convert = ScalaTree
