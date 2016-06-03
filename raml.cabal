@@ -47,6 +47,7 @@ library
                      , Data.Yaml.Ordered.Parser
                      , Data.Yaml.Ordered.Pretty
                      , Language.Scala.AnnotatedTree
+                     , Language.Scala.Annotator
                      , Language.Scala.CodeOverlay
                      , Language.Scala.Converter
                      , Language.Scala.Generator

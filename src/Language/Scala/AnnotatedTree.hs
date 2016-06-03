@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Language.Scala.AnnotatedTree where
 
+import Control.Arrow (second, (***))
 import           Data.AList (AList)
 import           Data.Yaml.Ordered (ToJSON(..))
 
@@ -60,3 +61,43 @@ unannotated x = (x, ())
 -- try to say "unUnannotated" 10 times fast :)
 unUnannotated :: Unannotated a -> a
 unUnannotated (x, ()) = x
+
+
+mapProductProps :: (f1 -> f2)
+                -> ProductProps f1
+                -> ProductProps f2
+mapProductProps ff (ProductProps xs) =
+    ProductProps (fmap (second ff) xs)
+
+mapBranchProps :: (f1 -> f2)
+               -> BranchProps f1
+               -> BranchProps f2
+mapBranchProps ff (BranchProps xs) =
+    BranchProps (fmap (second ff) xs)
+
+mapSumProps :: (f1 -> f2)
+            -> (b1 -> b2)
+            -> SumProps f1 b1
+            -> SumProps f2 b2
+mapSumProps ff fb (SumProps xs) =
+    SumProps (fmap (mapBranchProps ff *** fb) xs)
+
+mapTopLevelTypes :: (p1 -> p2)
+                 -> (s1 -> s2)
+                 -> (f1 -> f2)
+                 -> (b1 -> b2)
+                 -> TopLevelType p1 s1 f1 b1
+                 -> TopLevelType p2 s2 f2 b2
+mapTopLevelTypes fp fs ff fb = go
+  where
+    go (TopLevelProduct xs) = TopLevelProduct ((mapProductProps ff    *** fp) xs)
+    go (TopLevelSum     xs) = TopLevelSum     ((mapSumProps     ff fb *** fs) xs)
+
+mapAnnotatedTree :: (p1 -> p2)
+                 -> (s1 -> s2)
+                 -> (f1 -> f2)
+                 -> (b1 -> b2)
+                 -> AnnotatedTree p1 s1 f1 b1
+                 -> AnnotatedTree p2 s2 f2 b2
+mapAnnotatedTree fp fs ff fb (AnnotatedTree xs) =
+    AnnotatedTree (fmap (mapTopLevelTypes fp fs ff fb) xs)
