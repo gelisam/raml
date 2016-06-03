@@ -1,15 +1,15 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Language.Scala.Converter where
 
+import Language.Scala.AnnotatedTree
 import Language.Scala.Name
-import Language.Scala.ScalaTree
 import           Raml (Raml)
 import qualified Raml as Raml
 
 
 type FieldAnnotation = Maybe Raml.StringFieldProps
 
-type ConvertedTree = ScalaTree () () FieldAnnotation ()
+type ConvertedTree = AnnotatedTree () () FieldAnnotation ()
 
 
 convertFieldType :: Raml.Field
@@ -80,6 +80,6 @@ convertTypeProps (Raml.NamedSumTypeProps namedSum) =
 --     - null
 -- - []
 convert :: Raml -> ConvertedTree
-convert = ScalaTree
+convert = AnnotatedTree
         . fmap convertTypeProps
         . Raml.unAnalyzedTree

@@ -46,13 +46,13 @@ library
                      , Data.Yaml.Ordered.MyExtra
                      , Data.Yaml.Ordered.Parser
                      , Data.Yaml.Ordered.Pretty
+                     , Language.Scala.AnnotatedTree
                      , Language.Scala.CodeOverlay
                      , Language.Scala.Converter
                      , Language.Scala.Generator
                      , Language.Scala.IncludeTracker
                      , Language.Scala.Name
                      , Language.Scala.PrettyPrinter
-                     , Language.Scala.ScalaTree
                      , Language.Scala.Simplifier
                      , Raml
                      , Raml.Analyzer

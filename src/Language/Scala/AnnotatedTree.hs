@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Language.Scala.ScalaTree where
+module Language.Scala.AnnotatedTree where
 
 import           Data.AList (AList)
 import           Data.Yaml.Ordered (ToJSON(..))
@@ -30,8 +30,8 @@ data TopLevelType p s f b
 -- s: sum annotation
 -- f: field annotation
 -- b: branch annotation
-newtype ScalaTree p s f b = ScalaTree
-  { unScalaTree :: AList TypeName (TopLevelType p s f b)
+newtype AnnotatedTree p s f b = AnnotatedTree
+  { unAnnotatedTree :: AList TypeName (TopLevelType p s f b)
   } deriving (Show, Eq)
 
 
@@ -48,8 +48,8 @@ instance (ToJSON p, ToJSON s, ToJSON f, ToJSON b) => ToJSON (TopLevelType p s f 
   toJSON (TopLevelSum x) = toJSON x
   toJSON (TopLevelProduct x) = toJSON x
 
-instance (ToJSON p, ToJSON s, ToJSON f, ToJSON b) => ToJSON (ScalaTree p s f b) where
-  toJSON (ScalaTree x) = toJSON x
+instance (ToJSON p, ToJSON s, ToJSON f, ToJSON b) => ToJSON (AnnotatedTree p s f b) where
+  toJSON (AnnotatedTree x) = toJSON x
 
 
 type Unannotated a = (a, ())
