@@ -46,11 +46,11 @@ library
                      , Data.Yaml.Ordered.MyExtra
                      , Data.Yaml.Ordered.Parser
                      , Data.Yaml.Ordered.Pretty
+                     , Language.Scala.CodeOverlay
                      , Language.Scala.Converter
                      , Language.Scala.Generator
                      , Language.Scala.IncludeTracker
                      , Language.Scala.Name
-                     , Language.Scala.Overlay
                      , Language.Scala.PrettyPrinter
                      , Language.Scala.ScalaTree
                      , Language.Scala.Simplifier
