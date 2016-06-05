@@ -15,7 +15,8 @@ build-type:          Simple
 cabal-version:       >=1.10
 
 library
-  exposed-modules:     Data.AList
+  exposed-modules:     Control.Applicative.Infix
+                     , Data.AList
                      , Data.Aeson.Ordered
                      , Data.Aeson.Ordered.Encode
                      , Data.Aeson.Ordered.Encode.Builder
