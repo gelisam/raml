@@ -15,8 +15,6 @@
 
 module Control.Applicative.Infix where
 
-import Control.Applicative
-
 infixl 3 <^
 infixl 3 ^>
 infixl 3 ↿
