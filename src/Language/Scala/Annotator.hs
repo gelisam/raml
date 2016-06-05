@@ -60,12 +60,12 @@ data TopLevelPath
   deriving (Show, Eq)
 
 
-type Annotator p a = p -> a
-type ProductAnnotator  a = Annotator ProductPath  a
-type SumAnnotator      a = Annotator SumPath      a
-type FieldAnnotator    a = Annotator FieldPath    a
-type BranchAnnotator   a = Annotator BranchPath   a
-type TopLevelAnnotator a = Annotator TopLevelPath a
+type Annotator = (->)
+type ProductAnnotator  = Annotator ProductPath
+type SumAnnotator      = Annotator SumPath
+type FieldAnnotator    = Annotator FieldPath
+type BranchAnnotator   = Annotator BranchPath
+type TopLevelAnnotator = Annotator TopLevelPath
 
 
 groupProductFields :: forall a
