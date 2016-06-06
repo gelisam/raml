@@ -1,23 +1,21 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, RecordWildCards #-}
 module Language.Scala.Generator where
 
-import Data.Maybe
+import Prelude hiding (null)
+
 import           Data.AList (AList)
 import qualified Data.AList as AList
 import           Data.Yaml.Ordered (ToJSON(..))
-import Text.Printf
 
 import Data.Empty
 import Data.IndentedCode
 import Data.Yaml.Ordered.MyExtra
 import Language.Scala.AnnotatedTree
-import Language.Scala.Annotator
-import Language.Scala.Annotator.Pattern
 import Language.Scala.CodeOverlay
 import Language.Scala.Name
 
 
-type OverlaidTree = AnnotatedTree CodeOverlay CodeOverlay () ()
+type OverlaidTree = AnnotatedTree CodeOverlay CodeOverlay () CodeLayout
 
 
 data Trait = Trait
@@ -63,45 +61,40 @@ newtype GeneratedTree = GeneratedTree
 
 
 instance ToJSON Trait where
-  toJSON (Trait name) =
-    object [ "trait" .=! object [ "name" .=! name
+  toJSON (Trait {..}) =
+    object [ "trait" .=! object [ "name" .=! traitName
+                                , "code" .=! traitCode
                                 ]
            ]
 
 instance ToJSON CaseObject where
-  toJSON (CaseObject name parent) =
-    object [ "case_object" .=! object [ "name" .=! name
-                                      , "parent" .=? parent
+  toJSON (CaseObject {..}) =
+    object [ "case_object" .=! object [ "name"   .=! caseObjectName
+                                      , "parent" .=? caseObjectParent
+                                      , "code"   .=! caseObjectCode
                                       ]
            ]
 
 instance ToJSON Field where
-  toJSON (Field name type_) =
-    object [ "field" .=! object [ "name" .=! name
-                                , "type" .=! type_
+  toJSON (Field {..}) =
+    object [ "field" .=! object [ "name" .=! fieldName
+                                , "type" .=! fieldType
                                 ]
            ]
 
 instance ToJSON CaseClass where
-  toJSON (CaseClass name parent params reqs) =
-    object [ "case_class" .=! object [ "name" .=! name
-                                     , "parent" .=? parent
-                                     , "parameters" .=? params
-                                     , "requirements" .=? reqs
+  toJSON (CaseClass {..}) =
+    object [ "case_class" .=! object [ "name"   .=! caseClassName
+                                     , "parent" .=? caseClassParent
+                                     , "fields" .=! caseClassFields
+                                     , "code"   .=! caseClassCode
                                      ]
            ]
 
-instance ToJSON Val where
-  toJSON (Val name value) =
-    object [ "val" .=! object [ "name" .=! name
-                              , "value" .=! value
-                              ]
-           ]
-
 instance ToJSON CompanionObject where
-  toJSON (CompanionObject name vals) =
-    object [ "companion_object" .=! object [ "name" .=! name
-                                           , "vals" .=? vals
+  toJSON (CompanionObject {..}) =
+    object [ "companion_object" .=! object [ "name" .=! companionName
+                                           , "code" .=! companionCode
                                            ]
            ]
 
@@ -112,177 +105,70 @@ instance ToJSON GeneratedCode where
   toJSON (GeneratedCompanionObject x) = toJSON x
 
 instance Empty GeneratedCode where
-  null (GeneratedCompanionObject (CompanionObject _ [])) = True
+  null (GeneratedCompanionObject (CompanionObject _ (CodeLayout []))) = True
   null _ = False
 
 instance ToJSON GeneratedTree where
   toJSON (GeneratedTree x) = toJSON x
 
 
-generateType :: Raml.Field -> TypeName
-generateType (Raml.RegularField typeName) = typeName
-generateType (Raml.BuiltinField Raml.String) = "String"
-generateType (Raml.CustomStringField _) = "String"
+generateField :: ValName
+              -> (TypeName, ())
+              -> Field
+generateField fieldName (fieldType, ()) = Field {..}
 
-generateField :: Raml.PropertyName -> Raml.Field -> Field
-generateField fieldName_ type_ = Field fieldName_ (generateType type_)
-
-
-generateStringFieldRequirement :: CompanionNamer
-                               -> Raml.PropertyName
-                               -> Raml.StringFieldProps
-                               -> CodeChunk
-generateStringFieldRequirement companionNamer fieldName_ _ =
-    Indented $ CodeBlock
-    [ Line $ printf "%s match {" fieldName_
-    , Indented $ CodeBlock
-      [ Line $ printf "case %s() => true"
-                                (nameToString patternVar)
-      , Line "case _ => false"
-      ]
-    , Line "}"
-    ]
-  where
-    patternVar :: Name
-    patternVar = capitalize (companionNamer fieldName_ "pattern")
-
-accompanyStringFieldRequirement :: CompanionNamer
-                                -> Raml.PropertyName
-                                -> Raml.StringFieldProps
-                                -> [Val]
-accompanyStringFieldRequirement companionNamer fieldName_
-                                (Raml.StringFieldProps pattern) =
-    [ Val
-    { valName = nameToString patternVar
-    , valValue = Line $ printf "%s.r" (show pattern)
-    }
-    ]
-  where
-    patternVar = capitalize (companionNamer fieldName_ "pattern")
-
-
-generateRequirement :: CompanionNamer
-                    -> Raml.PropertyName
-                    -> Raml.Field
-                    -> Maybe CodeChunk
-generateRequirement companionNamer fieldName_ = go
-  where
-    go :: Raml.Field -> Maybe CodeChunk
-    go (Raml.RegularField _) = Nothing
-    go (Raml.BuiltinField _) = Nothing
-    go (Raml.CustomStringField stringFieldProps) =
-        Just $ generateStringFieldRequirement companionNamer fieldName_ stringFieldProps
-
-accompanyRequirement :: CompanionNamer
-                     -> Raml.PropertyName
-                     -> Raml.Field
-                     -> [Val]
-accompanyRequirement companionNamer fieldName_ = go
-  where
-    go :: Raml.Field -> [Val]
-    go (Raml.RegularField _) = []
-    go (Raml.BuiltinField _) = []
-    go (Raml.CustomStringField customField) =
-        accompanyStringFieldRequirement companionNamer fieldName_ customField
-
-
-generateProductClass :: TypeName -> Raml.NamedProductProps -> [GeneratedCode]
-generateProductClass typeName (Raml.NamedProductProps fields) =
-    [ GeneratedCaseClass
-    $ CaseClass
-    { caseClassName = typeName
-    , caseClassParent = Nothing
-    , parameters = map (uncurry generateField) (AList.toList fields)
-    , requirements = mapMaybe (uncurry go) (AList.toList fields)
-    }
-    ]
-  where
-    go :: Raml.PropertyName -> Raml.Field -> Maybe CodeChunk
-    go = generateRequirement companionNamer
-    
-    companionNamer :: CompanionNamer
-    companionNamer = qualifiedCompanionNamer typeName
-
-accompanyProductClass :: TypeName -> Raml.NamedProductProps -> [GeneratedCode]
-accompanyProductClass typeName (Raml.NamedProductProps fields) =
-    accompanyCaseClass unqualifiedCompanionNamer typeName fields
-
-
-generateCaseClass :: CompanionNamer
+generateCaseClass :: Maybe TypeName
                   -> TypeName
-                  -> Maybe TypeName
-                  -> AList Raml.PropertyName Raml.Field
+                  -> CodeLayout
+                  -> AList ValName (TypeName, ())
                   -> [GeneratedCode]
-generateCaseClass companionNamer typeName parentName fields =
+generateCaseClass parentName typeName codeLayout fields =
     [ GeneratedCaseClass
     $ CaseClass
-    { caseClassName = typeName
+    { caseClassName   = typeName
     , caseClassParent = parentName
-    , parameters = map (uncurry generateField) (AList.toList fields)
-    , requirements = mapMaybe (uncurry go) (AList.toList fields)
+    , caseClassFields = map (uncurry generateField) (AList.toList fields)
+    , caseClassCode   = codeLayout
     }
     ]
-  where
-    go :: Raml.PropertyName -> Raml.Field -> Maybe CodeChunk
-    go = generateRequirement companionNamer
-
-accompanyCaseClass :: CompanionNamer
-                   -> TypeName
-                   -> AList Raml.PropertyName Raml.Field
-                   -> [GeneratedCode]
-accompanyCaseClass companionNamer typeName fields =
-    [ GeneratedCompanionObject
-    $ CompanionObject
-    { companionName = typeName
-    , staticVals = foldMap (uncurry go) (AList.toList fields)
-    }
-    ]
-  where
-    go :: Raml.PropertyName -> Raml.Field -> [Val]
-    go = accompanyRequirement companionNamer
 
 
-generateBranch :: TypeName -> Raml.BranchName -> Raml.BranchProps -> [GeneratedCode]
-generateBranch parentName branchName (Raml.BranchProps fields) =
-    generateCaseClass companionNamer branchName (Just parentName) fields
-  where
-    companionNamer :: CompanionNamer
-    companionNamer = qualifiedCompanionNamer branchName
+generateBranch :: TypeName
+               -> TypeName
+               -> (BranchProps (), CodeLayout)
+               -> [GeneratedCode]
+generateBranch parentName branchName (BranchProps fields, codeLayout) =
+    generateCaseClass (Just parentName) branchName codeLayout fields
 
-accompanyBranch :: Raml.BranchName -> Raml.BranchProps -> [GeneratedCode]
-accompanyBranch typeName (Raml.BranchProps fields) =
-    accompanyCaseClass unqualifiedCompanionNamer typeName fields
-
-generateBranches :: TypeName -> Raml.NamedSumProps -> [GeneratedCode]
-generateBranches typeName (Raml.NamedSumProps branches) =
+generateSum :: TypeName
+            -> CodeLayout
+            -> SumProps () CodeLayout
+            -> [GeneratedCode]
+generateSum typeName codeLayout (SumProps branches) =
     [ GeneratedTrait
-    $ Trait typeName
+    $ Trait typeName codeLayout
     ] ++
     foldMap (uncurry (generateBranch typeName)) (AList.toList branches)
 
-accompanyBranches :: TypeName -> Raml.NamedSumProps -> [GeneratedCode]
-accompanyBranches typeName (Raml.NamedSumProps branches) =
-    accompanyCaseClass unqualifiedCompanionNamer typeName AList.empty ++
-    foldMap (uncurry accompanyBranch) (AList.toList branches)
+generateProduct :: TypeName
+                -> CodeLayout
+                -> ProductProps ()
+                -> [GeneratedCode]
+generateProduct typeName codeLayout (ProductProps branches) =
+    generateCaseClass Nothing typeName codeLayout branches
 
 
-generateNamedSum :: TypeName -> Raml.NamedSumProps -> [[GeneratedCode]]
-generateNamedSum typeName namedSum =
-    [ generateBranches typeName namedSum
-    , accompanyBranches typeName namedSum
+generateTopLevel :: TypeName
+                 -> TopLevelType CodeOverlay CodeOverlay () CodeLayout
+                 -> [[GeneratedCode]]
+generateTopLevel typeName (TopLevelProduct (productProps, CodeOverlay {..})) =
+    [ generateProduct typeName overlaidMethods productProps
+    , [GeneratedCompanionObject $ CompanionObject typeName overlaidHelpers]
     ]
-
-generateNamedProduct :: TypeName -> Raml.NamedProductProps -> [[GeneratedCode]]
-generateNamedProduct typeName namedProduct =
-    [ generateProductClass typeName namedProduct
-    , accompanyProductClass typeName namedProduct
+generateTopLevel typeName (TopLevelSum (sumProps, CodeOverlay {..})) =
+    [ generateSum typeName overlaidMethods sumProps
+    , [GeneratedCompanionObject $ CompanionObject typeName overlaidHelpers]
     ]
-
-generateTypeProps :: TypeName -> Raml.TypeProps -> [[GeneratedCode]]
-generateTypeProps typeName (Raml.NamedSumTypeProps namedSum) =
-    generateNamedSum typeName namedSum
-generateTypeProps typeName (Raml.NamedProductTypeProps namedProduct) =
-    generateNamedProduct typeName namedProduct
 
 
 -- |
@@ -339,6 +225,6 @@ generateTypeProps typeName (Raml.NamedProductTypeProps namedProduct) =
 --         name: Field
 generate :: OverlaidTree -> GeneratedTree
 generate = GeneratedTree
-         . map (uncurry generateTypeProps)
+         . map (uncurry generateTopLevel)
          . AList.toList
-         . Raml.unAnalyzedTree
+         . unAnnotatedTree
