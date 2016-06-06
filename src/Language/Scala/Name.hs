@@ -36,14 +36,3 @@ capitalize :: Name -> Name
 capitalize (Name s) = Name (String.capitalize s)
 capitalize (PrefixedName prefix s) = PrefixedName (String.capitalize prefix) s
 capitalize (QualifiedName qualifier s) = QualifiedName qualifier (capitalize s)
-
-
-type CompanionNamer = Raml.PropertyName -> String -> Name
-
-qualifiedCompanionNamer :: TypeName -> CompanionNamer
-qualifiedCompanionNamer companionName fieldName varName =
-    companionName .++ fieldName +++ Name varName
-
-unqualifiedCompanionNamer :: CompanionNamer
-unqualifiedCompanionNamer fieldName varName =
-    fieldName +++ Name varName

@@ -10,18 +10,25 @@ import Text.Printf
 import Data.Empty
 import Data.IndentedCode
 import Data.Yaml.Ordered.MyExtra
+import Language.Scala.AnnotatedTree
+import Language.Scala.Annotator
+import Language.Scala.Annotator.Pattern
+import Language.Scala.CodeOverlay
 import Language.Scala.Name
-import           Raml (Raml)
-import qualified Raml as Raml
+
+
+type OverlaidTree = AnnotatedTree CodeOverlay CodeOverlay () ()
 
 
 data Trait = Trait
   { traitName :: TypeName
+  , traitCode :: CodeLayout
   } deriving (Show, Eq)
 
 data CaseObject = CaseObject
   { caseObjectName :: TypeName
   , caseObjectParent :: Maybe TypeName
+  , caseObjectCode :: CodeLayout
   } deriving (Show, Eq)
 
 
@@ -33,19 +40,14 @@ data Field = Field
 data CaseClass = CaseClass
   { caseClassName :: TypeName
   , caseClassParent :: Maybe TypeName
-  , parameters :: [Field]
-  , requirements :: [CodeChunk]
+  , caseClassFields :: [Field]
+  , caseClassCode :: CodeLayout
   } deriving (Show, Eq)
 
-
-data Val = Val
-  { valName :: ValName
-  , valValue :: CodeChunk
-  } deriving (Show, Eq)
 
 data CompanionObject = CompanionObject
   { companionName :: TypeName
-  , staticVals :: [Val]
+  , companionCode :: CodeLayout
   } deriving (Show, Eq)
 
 data GeneratedCode
@@ -335,7 +337,7 @@ generateTypeProps typeName (Raml.NamedProductTypeProps namedProduct) =
 --             type: DataType
 --   - - companion_object:
 --         name: Field
-generate :: Raml -> GeneratedTree
+generate :: OverlaidTree -> GeneratedTree
 generate = GeneratedTree
          . map (uncurry generateTypeProps)
          . AList.toList
