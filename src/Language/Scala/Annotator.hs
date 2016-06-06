@@ -138,6 +138,9 @@ groupFields f = go
     go (TopLevelSumPath sumPath) = concat $ groupBranches (groupBranchFields f) sumPath
 
 
+-- >>> import Raml
+-- >>> r <- annotate (const ()) (const ()) <$> convert <$> readRaml "tests/sample.in"
+-- >>> printAsYaml r
 annotate :: forall a b
           . TopLevelAnnotator a
          -> BranchAnnotator b

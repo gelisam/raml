@@ -114,28 +114,19 @@ prettyPrintGeneratedCode (GeneratedCompanionObject companionObject) =
 
 -- |
 -- >>> import Raml
+-- >>> import Language.Scala.Annotator
+-- >>> import Language.Scala.Converter
 -- >>> import Language.Scala.Generator
 -- >>> import Language.Scala.Simplifier
--- >>> r <- flattenLayout <$> prettyPrint <$> simplify <$> generate <$> readRaml "tests/sample.in"
+-- >>> r <- flattenLayout <$> prettyPrint <$> simplify <$> generate <$> annotate mempty mempty <$> convert <$> readRaml "tests/sample.in"
 -- >>> testBlock r
 -- sealed trait DataType
 -- case object StringType extends DataType
 -- case object NumberType extends DataType
 -- case class DateType(
 --   dateFormat: String
--- ) extends DataType {
---   require(
---     dateFormat match {
---       case DateType.DateFormatPattern() => true
---       case _ => false
---     }
---   )
--- }
+-- ) extends DataType
 -- case object BooleanType extends DataType
--- .
--- object DateType {
---   val DateFormatPattern = "[YMD]+[-\\.][YMD]+[-\\.\\/][YMD]+".r
--- }
 -- .
 -- .
 -- case class Field(

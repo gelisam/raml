@@ -120,7 +120,55 @@ branchAnnotator = multiBlockLayout
 topLevelContribution :: TopLevelAnnotator (CodeBlock, CodeBlock)
 topLevelContribution = mconcat <$> groupFields fieldContribution
 
+-- |
+-- >>> import Data.Yaml.Ordered.MyExtra
+-- >>> import Raml
+-- >>> import Language.Scala.Converter
+-- >>> r <- Annotator.annotate topLevelAnnotator branchAnnotator <$> convert <$> readRaml "tests/sample.in"
+-- >>> printAsYaml r
+-- DataType:
+-- - StringType:
+--   - fields: {}
+--   - - []
+--   NumberType:
+--   - fields: {}
+--   - - []
+--   DateType:
+--   - fields:
+--       dateFormat:
+--       - String
+--       - []
+--   - - - - require(
+--         - - dateFormat match {
+--           - - case DataType.DateFormatPattern() => true
+--             - case _ => false
+--           - ! '}'
+--         - )
+--   BooleanType:
+--   - fields: {}
+--   - - []
+-- - methods:
+--   - - - require(
+--       - - dateFormat match {
+--         - - case DataType.DateFormatPattern() => true
+--           - case _ => false
+--         - ! '}'
+--       - )
+--   helpers:
+--   - - - val DateFormatPattern = "[YMD]+[-\\.][YMD]+[-\\.\\/][YMD]+".r
+-- Field:
+-- - fields:
+--     name:
+--     - String
+--     - []
+--     dataType:
+--     - DataType
+--     - []
+-- - methods:
+--   - - []
+--   helpers:
+--   - - []
 topLevelAnnotator :: TopLevelAnnotator CodeOverlay
 topLevelAnnotator = uncurry CodeOverlay
-             <$> (singleBlockLayout *** singleBlockLayout)
-             <$> topLevelContribution
+                <$> (singleBlockLayout *** singleBlockLayout)
+                <$> topLevelContribution

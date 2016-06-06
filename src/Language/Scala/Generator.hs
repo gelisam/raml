@@ -86,7 +86,7 @@ instance ToJSON CaseClass where
   toJSON (CaseClass {..}) =
     object [ "case_class" .=! object [ "name"   .=! caseClassName
                                      , "parent" .=? caseClassParent
-                                     , "fields" .=! caseClassFields
+                                     , "fields" .=? caseClassFields
                                      , "code"   .=! caseClassCode
                                      ]
            ]
@@ -173,56 +173,49 @@ generateTopLevel typeName (TopLevelSum (sumProps, CodeOverlay {..})) =
 
 -- |
 -- >>> import Raml
--- >>> r <- generate <$> readRaml "tests/sample.in"
+-- >>> import Language.Scala.Annotator
+-- >>> import Language.Scala.Converter
+-- >>> r <- generate <$> annotate mempty mempty <$> convert <$> readRaml "tests/sample.in"
 -- >>> printAsYaml r
 -- - - - trait:
 --         name: DataType
+--         code: []
 --     - case_class:
 --         name: StringType
 --         parent: DataType
+--         code: []
 --     - case_class:
 --         name: NumberType
 --         parent: DataType
+--         code: []
 --     - case_class:
 --         name: DateType
 --         parent: DataType
---         parameters:
+--         fields:
 --         - field:
 --             name: dateFormat
 --             type: String
---         requirements:
---         - - dateFormat match {
---           - - case DateType.DateFormatPattern() => true
---             - case _ => false
---           - ! '}'
+--         code: []
 --     - case_class:
 --         name: BooleanType
 --         parent: DataType
+--         code: []
 --   - - companion_object:
 --         name: DataType
---     - companion_object:
---         name: StringType
---     - companion_object:
---         name: NumberType
---     - companion_object:
---         name: DateType
---         vals:
---         - val:
---             name: DateFormatPattern
---             value: ! '"[YMD]+[-\\.][YMD]+[-\\.\\/][YMD]+".r'
---     - companion_object:
---         name: BooleanType
+--         code: []
 -- - - - case_class:
 --         name: Field
---         parameters:
+--         fields:
 --         - field:
 --             name: name
 --             type: String
 --         - field:
 --             name: dataType
 --             type: DataType
+--         code: []
 --   - - companion_object:
 --         name: Field
+--         code: []
 generate :: OverlaidTree -> GeneratedTree
 generate = GeneratedTree
          . map (uncurry generateTopLevel)

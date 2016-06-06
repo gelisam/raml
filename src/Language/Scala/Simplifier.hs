@@ -24,49 +24,43 @@ instance Simplify GeneratedCode where
 
 -- |
 -- >>> import Data.Yaml.Ordered.MyExtra
--- >>> import Raml.Parser
--- >>> import Raml.Normalizer
--- >>> import Raml.Classifier
--- >>> import Raml.Analyzer
--- >>> r <- simplify <$> generate <$> analyze <$> classify <$> normalize <$> parse <$> readYaml "tests/sample.in"
+-- >>> import Raml
+-- >>> import Language.Scala.Annotator
+-- >>> import Language.Scala.Converter
+-- >>> r <- simplify <$> generate <$> annotate mempty mempty <$> convert <$> readRaml "tests/sample.in"
 -- >>> printAsYaml r
 -- - - - trait:
 --         name: DataType
+--         code: []
 --     - case_object:
 --         name: StringType
 --         parent: DataType
+--         code: []
 --     - case_object:
 --         name: NumberType
 --         parent: DataType
+--         code: []
 --     - case_class:
 --         name: DateType
 --         parent: DataType
---         parameters:
+--         fields:
 --         - field:
 --             name: dateFormat
 --             type: String
---         requirements:
---         - - dateFormat match {
---           - - case DateType.DateFormatPattern() => true
---             - case _ => false
---           - ! '}'
+--         code: []
 --     - case_object:
 --         name: BooleanType
 --         parent: DataType
---   - - companion_object:
---         name: DateType
---         vals:
---         - val:
---             name: DateFormatPattern
---             value: ! '"[YMD]+[-\\.][YMD]+[-\\.\\/][YMD]+".r'
+--         code: []
 -- - - - case_class:
 --         name: Field
---         parameters:
+--         fields:
 --         - field:
 --             name: name
 --             type: String
 --         - field:
 --             name: dataType
 --             type: DataType
+--         code: []
 instance Simplify GeneratedTree where
   simplify = GeneratedTree . simplify . unGeneratedTree
