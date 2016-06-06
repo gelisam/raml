@@ -12,6 +12,22 @@ import Language.Scala.Annotator.DSL
 import Language.Scala.CodeOverlay
 import Language.Scala.Name
 
+-- $setup
+-- >>> import qualified Language.Scala.Annotator as Annotator
+-- >>> :{
+-- let fieldPath = Annotator.FieldPath
+--       (Annotator.FieldPrefix
+--         (Annotator.FieldContainingProduct
+--           (Annotator.ProductPrefix "VarNode"))
+--         "identifier")
+--       ( "String"
+--       , Just (Raml.StringFieldProps "[a-zA-Z0-9_]*")
+--       )
+-- :}
+-- 
+-- >>> let testAnnotator f = f fieldPath
+-- >>> let testMaybeAnnotator f = getCompose f fieldPath
+
 
 require :: CodeChunk -> CodeBlock
 require (Line s) = CodeBlock
@@ -30,17 +46,32 @@ annotator :: FieldAnnotator a -> MaybeFieldAnnotator a
 annotator = Compose . fmap Just
 
 
+-- |
+-- >>> testMaybeAnnotator pattern
+-- Just "[a-zA-Z0-9_]*"
 pattern :: MaybeFieldAnnotator Raml.Regexp
 pattern = Raml.stringPattern
       <$> Compose fieldAnnotation
 
+-- |
+-- >>> nameToString $ testAnnotator patternVar
+-- "IdentifierPattern"
 patternVar :: FieldReader f => f Name
 patternVar = capitalize <$> (fieldName <^(+++)^> pure (Name "pattern"))
 
+-- |
+-- >>> nameToString $ testAnnotator qualifiedPatternVar
+-- "VarNode.IdentifierPattern"
 qualifiedPatternVar :: FieldReader f => f Name
 qualifiedPatternVar = topLevelName <^(.++)^> patternVar
 
 
+-- |
+-- >>> testBlock $ fromJust $ testMaybeAnnotator condition
+-- identifier match {
+--   case VarNode.IdentifierPattern() => true
+--   case _ => false
+-- }
 condition :: MaybeFieldAnnotator CodeBlock
 condition = CodeBlock
         <$> sequenceA
@@ -54,9 +85,20 @@ condition = CodeBlock
           , Line <$> pure   "}"
           ]
 
+-- |
+-- >>> testBlock $ fromJust $ testMaybeAnnotator requireBlock
+-- require(
+--   identifier match {
+--     case VarNode.IdentifierPattern() => true
+--     case _ => false
+--   }
+-- )
 requireBlock :: MaybeFieldAnnotator CodeBlock
 requireBlock = require <$> Indented <$> condition
 
+-- |
+-- >>> testBlock $ fromJust $ testMaybeAnnotator declarationBlock
+-- val IdentifierPattern = "[a-zA-Z0-9_]*".r
 declarationBlock :: MaybeFieldAnnotator CodeBlock
 declarationBlock = singleLineBlock
                <$> ( printf "val %s = %s.r"
