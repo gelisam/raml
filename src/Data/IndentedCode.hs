@@ -15,9 +15,12 @@ module Data.IndentedCode
   , printBlock, testBlock
   ) where
 
-import Data.List
+import Prelude hiding (null)
+
+import Data.List hiding (null)
 import Data.Yaml.Ordered (ToJSON(..))
 
+import Data.Empty
 import Data.List.MyExtra
 import Data.Yaml.Ordered.MyExtra
 
@@ -100,15 +103,15 @@ data CodeChunk
 
 newtype CodeBlock = CodeBlock
   { runCodeBlock :: [CodeChunk]
-  } deriving (Show, Eq, Monoid, ToJSON)
+  } deriving (Show, Eq, Empty, Monoid, ToJSON)
 
 newtype CodeGroup = CodeGroup
   { runCodeGroup :: [CodeBlock]
-  } deriving (Show, Eq, Monoid, ToJSON)
+  } deriving (Show, Eq, Empty, Monoid, ToJSON)
 
 newtype CodeLayout = CodeLayout
   { runCodeLayout :: [CodeGroup]
-  } deriving (Show, Eq, Monoid, ToJSON)
+  } deriving (Show, Eq, Empty, Monoid, ToJSON)
 
 
 instance ToJSON CodeChunk where
