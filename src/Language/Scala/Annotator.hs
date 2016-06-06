@@ -138,22 +138,26 @@ groupFields f = go
     go (TopLevelSumPath sumPath) = concat $ groupBranches (groupBranchFields f) sumPath
 
 
-annotate :: forall a
+annotate :: forall a b
           . TopLevelAnnotator a
+         -> BranchAnnotator b
          -> ConvertedTree
-         -> AnnotatedTree a a () ()
-annotate f (AnnotatedTree xs) = AnnotatedTree (mapWithKey go xs)
+         -> AnnotatedTree a a () b
+annotate f g (AnnotatedTree xs) = AnnotatedTree (mapWithKey go xs)
   where
     go :: TypeName
        -> TopLevelType () () FieldAnnotation ()
-       -> TopLevelType a a () ()
+       -> TopLevelType a a () b
     go productName (TopLevelProduct productProps) = TopLevelProduct (annotateProduct (ProductPrefix {..}) productProps)
     go sumName     (TopLevelSum     sumProps    ) = TopLevelSum     (annotateSum     (SumPrefix     {..}) sumProps    )
     
     annotateProduct :: ProductPrefix
                     -> (ProductProps FieldAnnotation, ())
                     -> (ProductProps (), a)
-    annotateProduct productPrefix (productProps, ()) = (productProps', f topLevelPath)
+    annotateProduct productPrefix (productProps, ()) =
+        ( productProps'
+        , f topLevelPath
+        )
       where
         productProps' :: ProductProps ()
         productProps' = mapProductProps (const ()) productProps
@@ -163,11 +167,34 @@ annotate f (AnnotatedTree xs) = AnnotatedTree (mapWithKey go xs)
     
     annotateSum :: SumPrefix
                 -> (SumProps FieldAnnotation (), ())
-                -> (SumProps () (), a)
-    annotateSum sumPrefix (sumProps, ()) = (sumProps', f topLevelPath)
+                -> (SumProps () b, a)
+    annotateSum sumPrefix (sumProps@(SumProps {..}), ()) =
+        ( SumProps branches'
+        , f topLevelPath
+        )
       where
-        sumProps' :: SumProps () ()
-        sumProps' = mapSumProps (const ()) (const ()) sumProps
+        branches' :: AList ValName (BranchProps (), b)
+        branches' = mapWithKey annotateBranch branches
+        
+        sumPath :: SumPath
+        sumPath = SumPath {..}
         
         topLevelPath :: TopLevelPath
-        topLevelPath = TopLevelSumPath (SumPath {..})
+        topLevelPath = TopLevelSumPath sumPath
+        
+        annotateBranch :: TypeName
+                       -> (BranchProps FieldAnnotation, ())
+                       -> (BranchProps (), b)
+        annotateBranch branchName (branchProps, ()) =
+            ( mapBranchProps (const ()) branchProps
+            , g branchPath
+            )
+          where
+            branchContainer :: SumPrefix
+            branchContainer = sumPrefix
+            
+            branchPrefix :: BranchPrefix
+            branchPrefix = BranchPrefix {..}
+            
+            branchPath :: BranchPath
+            branchPath = BranchPath {..}
