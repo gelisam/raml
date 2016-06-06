@@ -1,8 +1,11 @@
 module Language.Scala.PrettyPrinter where
 
+import Prelude hiding (null)
+
 import Data.Monoid
 import Text.Printf
 
+import Data.Empty
 import Data.IndentedCode
 import Language.Scala.Generator
 
@@ -42,7 +45,7 @@ prettyPrintFields = intercalateComma
 
 
 prettyPrintTrait :: Trait -> CodeBlock
-prettyPrintTrait (Trait name (CodeLayout [])) = CodeBlock
+prettyPrintTrait (Trait name codeLayout) | null codeLayout = CodeBlock
     [ Line $ printf "sealed trait %s" name
     ]
 prettyPrintTrait (Trait name codeLayout) = CodeBlock
@@ -52,10 +55,10 @@ prettyPrintTrait (Trait name codeLayout) = CodeBlock
     ]
 
 prettyPrintCaseObject :: CaseObject -> CodeBlock
-prettyPrintCaseObject (CaseObject name Nothing (CodeLayout [])) = CodeBlock
+prettyPrintCaseObject (CaseObject name Nothing codeLayout) | null codeLayout = CodeBlock
     [ Line $ printf "case object %s" name
     ]
-prettyPrintCaseObject (CaseObject name (Just parentName) (CodeLayout [])) = CodeBlock
+prettyPrintCaseObject (CaseObject name (Just parentName) codeLayout) | null codeLayout = CodeBlock
     [ Line $ printf "case object %s extends %s" name parentName
     ]
 prettyPrintCaseObject (CaseObject name Nothing codeLayout) = CodeBlock
@@ -70,12 +73,12 @@ prettyPrintCaseObject (CaseObject name (Just parentName) codeLayout) = CodeBlock
     ]
 
 prettyPrintCaseClass :: CaseClass -> CodeBlock
-prettyPrintCaseClass (CaseClass name Nothing fields (CodeLayout [])) = CodeBlock
+prettyPrintCaseClass (CaseClass name Nothing fields codeLayout) | null codeLayout = CodeBlock
     [ Line $ printf "case class %s(" name
     , Indented $ prettyPrintFields fields
     , Line ")"
     ]
-prettyPrintCaseClass (CaseClass name (Just parentName) fields (CodeLayout [])) = CodeBlock
+prettyPrintCaseClass (CaseClass name (Just parentName) fields codeLayout) | null codeLayout = CodeBlock
     [ Line $ printf "case class %s(" name
     , Indented $ prettyPrintFields fields
     , Line $ printf ") extends %s" parentName
@@ -134,7 +137,7 @@ prettyPrintGeneratedCode (GeneratedCompanionObject companionObject) =
 --   dataType: DataType
 -- )
 prettyPrint :: GeneratedTree -> CodeLayout
-prettyPrint = CodeLayout
-            . map CodeGroup
+prettyPrint = multiGroupLayout
+            . map multiBlockGroup
             . (map . map . foldMap) prettyPrintGeneratedCode
             . unGeneratedTree

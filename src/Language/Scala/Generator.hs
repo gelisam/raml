@@ -105,7 +105,7 @@ instance ToJSON GeneratedCode where
   toJSON (GeneratedCompanionObject x) = toJSON x
 
 instance Empty GeneratedCode where
-  null (GeneratedCompanionObject (CompanionObject _ (CodeLayout []))) = True
+  null (GeneratedCompanionObject (CompanionObject _ codeLayout)) = null codeLayout
   null _ = False
 
 instance ToJSON GeneratedTree where
