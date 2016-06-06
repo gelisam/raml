@@ -1,5 +1,19 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-module Data.IndentedCode where
+module Data.IndentedCode
+  ( CodeChunk(..)
+  , CodeBlock(..)
+  , CodeGroup
+  , CodeLayout
+  , singleLineBlock, multiLineBlock
+  , singleBlockGroup, multiBlockGroup
+  , singleLineGroup, multiLineGroup
+  , singleGroupLayout, multiGroupLayout
+  , singleBlockLayout, multiBlockLayout
+  , singleLineLayout, multiLineLayout
+  , flattenGroup, flattenLayout
+  , simplifyLayout
+  , printBlock, testBlock
+  ) where
 
 import Data.List
 import Data.Yaml.Ordered (ToJSON(..))
