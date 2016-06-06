@@ -41,78 +41,64 @@ prettyPrintFields = intercalateComma
                   . map prettyPrintField
 
 
-prettyPrintRequirement :: CodeChunk -> CodeBlock
-prettyPrintRequirement (Line s) = CodeBlock
-    [ Line $ printf "require(%s)" s
-    ]
-prettyPrintRequirement (Indented ss) = CodeBlock
-    [ Line "require("
-    , Indented ss
-    , Line ")"
-    ]
-
-prettyPrintRequirements :: [CodeChunk] -> CodeBlock
-prettyPrintRequirements = flattenGroup
-                        . multiBlockGroup
-                        . map prettyPrintRequirement
-
-
-prettyPrintVal :: Val -> CodeBlock
-prettyPrintVal (Val name (Line value)) = CodeBlock
-    [ Line $ printf "val %s = %s" name value
-    ]
-prettyPrintVal (Val name (Indented xs)) = CodeBlock
-    [ Line $ printf "val %s =" name
-    , Indented xs
-    ]
-
-prettyPrintVals :: [Val] -> CodeBlock
-prettyPrintVals = foldMap prettyPrintVal
-
-
 prettyPrintTrait :: Trait -> CodeBlock
-prettyPrintTrait (Trait name) = CodeBlock
+prettyPrintTrait (Trait name (CodeLayout [])) = CodeBlock
     [ Line $ printf "sealed trait %s" name
+    ]
+prettyPrintTrait (Trait name codeLayout) = CodeBlock
+    [ Line $ printf "sealed trait %s {" name
+    , Indented $ flattenLayout codeLayout
+    , Line $ "}"
     ]
 
 prettyPrintCaseObject :: CaseObject -> CodeBlock
-prettyPrintCaseObject (CaseObject name Nothing) = CodeBlock
+prettyPrintCaseObject (CaseObject name Nothing (CodeLayout [])) = CodeBlock
     [ Line $ printf "case object %s" name
     ]
-prettyPrintCaseObject (CaseObject name (Just parentName)) = CodeBlock
+prettyPrintCaseObject (CaseObject name (Just parentName) (CodeLayout [])) = CodeBlock
     [ Line $ printf "case object %s extends %s" name parentName
+    ]
+prettyPrintCaseObject (CaseObject name Nothing codeLayout) = CodeBlock
+    [ Line $ printf "case object %s {" name
+    , Indented $ flattenLayout codeLayout
+    , Line $ "}"
+    ]
+prettyPrintCaseObject (CaseObject name (Just parentName) codeLayout) = CodeBlock
+    [ Line $ printf "case object %s extends %s {" name parentName
+    , Indented $ flattenLayout codeLayout
+    , Line $ "}"
     ]
 
 prettyPrintCaseClass :: CaseClass -> CodeBlock
-prettyPrintCaseClass (CaseClass name Nothing fields []) = CodeBlock
+prettyPrintCaseClass (CaseClass name Nothing fields (CodeLayout [])) = CodeBlock
     [ Line $ printf "case class %s(" name
     , Indented $ prettyPrintFields fields
     , Line ")"
     ]
-prettyPrintCaseClass (CaseClass name (Just parentName) fields []) = CodeBlock
+prettyPrintCaseClass (CaseClass name (Just parentName) fields (CodeLayout [])) = CodeBlock
     [ Line $ printf "case class %s(" name
     , Indented $ prettyPrintFields fields
     , Line $ printf ") extends %s" parentName
     ]
-prettyPrintCaseClass (CaseClass name Nothing fields reqs) = CodeBlock
+prettyPrintCaseClass (CaseClass name Nothing fields codeLayout) = CodeBlock
     [ Line $ printf "case class %s(" name
     , Indented $ prettyPrintFields fields
     , Line ") {"
-    , Indented $ prettyPrintRequirements reqs
+    , Indented $ flattenLayout codeLayout
     , Line "}"
     ]
-prettyPrintCaseClass (CaseClass name (Just parentName) fields reqs) = CodeBlock
+prettyPrintCaseClass (CaseClass name (Just parentName) fields codeLayout) = CodeBlock
     [ Line $ printf "case class %s(" name
     , Indented $ prettyPrintFields fields
     , Line $ printf ") extends %s {" parentName
-    , Indented $ prettyPrintRequirements reqs
+    , Indented $ flattenLayout codeLayout
     , Line "}"
     ]
 
 prettyPrintCompanionObject :: CompanionObject -> CodeBlock
-prettyPrintCompanionObject (CompanionObject name vals) = CodeBlock
+prettyPrintCompanionObject (CompanionObject name codeLayout) = CodeBlock
     [ Line $ printf "object %s {" name
-    , Indented $ prettyPrintVals vals
+    , Indented $ flattenLayout codeLayout
     , Line $ "}"
     ]
 
