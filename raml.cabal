@@ -50,6 +50,7 @@ library
                      , Language.Scala.AnnotatedTree
                      , Language.Scala.Annotator
                      , Language.Scala.Annotator.DSL
+                     , Language.Scala.Annotator.Pattern
                      , Language.Scala.CodeOverlay
                      , Language.Scala.Converter
                      , Language.Scala.Generator

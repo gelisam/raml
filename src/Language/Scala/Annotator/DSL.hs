@@ -10,6 +10,7 @@ module Language.Scala.Annotator.DSL
   , groupBranchFields
   , groupBranches
   , groupTopLevels
+  , groupFields
   
   , ProductReader(..)
   , SumReader(..)
@@ -30,6 +31,8 @@ module Language.Scala.Annotator.DSL
   , fieldAnnotation
   ) where
 
+import Data.Functor.Compose
+
 import Language.Scala.Converter
 import qualified Language.Scala.Annotator as Annotator
 import           Language.Scala.Annotator
@@ -43,20 +46,21 @@ import           Language.Scala.Annotator
   , groupBranchFields
   , groupBranches
   , groupTopLevels
+  , groupFields
   )
 import Language.Scala.Name
 
 
-class Applicative f => ProductReader f where
+class TopLevelReader f => ProductReader f where
     productPrefix :: f Annotator.ProductPrefix
 
-class Applicative f => SumReader f where
+class TopLevelReader f => SumReader f where
     sumPrefix :: f Annotator.SumPrefix
 
-class Applicative f => FieldReader f where
+class TopLevelReader f => FieldReader f where
     fieldPrefix :: f Annotator.FieldPrefix
 
-class Applicative f => BranchReader f where
+class SumReader f => BranchReader f where
     branchPrefix :: f Annotator.BranchPrefix
 
 class Applicative f => TopLevelReader f where
@@ -110,6 +114,22 @@ instance TopLevelReader TopLevelAnnotator where
         Left (productPrefix productPath)
     topLevelPrefix (Annotator.TopLevelSumPath sumPath) =
         Right (sumPrefix sumPath)
+
+
+instance (ProductReader f, Applicative g) => ProductReader (Compose f g) where
+    productPrefix = Compose $ fmap pure $ productPrefix
+
+instance (SumReader f, Applicative g) => SumReader (Compose f g) where
+    sumPrefix = Compose $ fmap pure $ sumPrefix
+
+instance (FieldReader f, Applicative g) => FieldReader (Compose f g) where
+    fieldPrefix = Compose $ fmap pure $ fieldPrefix
+
+instance (BranchReader f, Applicative g) => BranchReader (Compose f g) where
+    branchPrefix = Compose $ fmap pure $ branchPrefix
+
+instance (TopLevelReader f, Applicative g) => TopLevelReader (Compose f g) where
+    topLevelPrefix = Compose $ fmap pure $ topLevelPrefix
 
 
 productName :: ProductReader f => f TypeName

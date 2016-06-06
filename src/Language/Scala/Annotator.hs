@@ -1,6 +1,8 @@
 {-# LANGUAGE RecordWildCards, ScopedTypeVariables #-}
 module Language.Scala.Annotator where
 
+import qualified Data.Foldable as Foldable
+
 import Data.AList
 import Language.Scala.AnnotatedTree
 import Language.Scala.Converter
@@ -70,8 +72,9 @@ type TopLevelAnnotator = Annotator TopLevelPath
 
 groupProductFields :: forall a
                     . FieldAnnotator a
-                   -> ProductAnnotator (AList ValName a)
-groupProductFields f (ProductPath {..}) = mapWithKey go
+                   -> ProductAnnotator [a]
+groupProductFields f (ProductPath {..}) = Foldable.toList
+                                        $ mapWithKey go
                                         $ productFields productProps
   where
     go :: ValName -> (TypeName, FieldAnnotation) -> a
@@ -85,8 +88,9 @@ groupProductFields f (ProductPath {..}) = mapWithKey go
 
 groupBranchFields :: forall a
                    . FieldAnnotator a
-                  -> BranchAnnotator (AList ValName a)
-groupBranchFields f (BranchPath {..}) = mapWithKey go
+                  -> BranchAnnotator [a]
+groupBranchFields f (BranchPath {..}) = Foldable.toList
+                                      $ mapWithKey go
                                       $ branchFields branchProps
   where
     go :: ValName -> (TypeName, FieldAnnotation) -> a
@@ -100,8 +104,9 @@ groupBranchFields f (BranchPath {..}) = mapWithKey go
 
 groupBranches :: forall a
                . BranchAnnotator a
-              -> SumAnnotator (AList TypeName a)
-groupBranches f (SumPath {..}) = mapWithKey go
+              -> SumAnnotator [a]
+groupBranches f (SumPath {..}) = Foldable.toList
+                               $ mapWithKey go
                                $ branches sumProps
   where
     go :: TypeName -> (BranchProps FieldAnnotation, ()) -> a
@@ -119,8 +124,18 @@ groupTopLevels :: forall a
                -> TopLevelAnnotator a
 groupTopLevels f g = go
   where
+    go :: TopLevelPath -> a
     go (TopLevelProductPath productPath) = f productPath
     go (TopLevelSumPath     sumPath    ) = g sumPath
+
+groupFields :: forall a
+             . FieldAnnotator a
+            -> TopLevelAnnotator [a]
+groupFields f = go
+  where
+    go :: TopLevelPath -> [a]
+    go (TopLevelProductPath productPath) = groupProductFields f productPath
+    go (TopLevelSumPath sumPath) = concat $ groupBranches (groupBranchFields f) sumPath
 
 
 annotate :: forall a
