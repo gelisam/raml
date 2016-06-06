@@ -17,8 +17,8 @@ instance (Empty a, Simplify a) => Simplify [a] where
           x' = simplify x
 
 instance Simplify GeneratedCode where
-  simplify (GeneratedCaseClass (CaseClass name parentName [] [])) =
-      GeneratedCaseObject (CaseObject name parentName)
+  simplify (GeneratedCaseClass (CaseClass name parentName [] codeLayout)) =
+      GeneratedCaseObject (CaseObject name parentName codeLayout)
   simplify x = x
 
 
