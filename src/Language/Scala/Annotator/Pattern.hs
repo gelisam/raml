@@ -112,10 +112,15 @@ fieldContribution = fmap (fromMaybe mempty)
                   $ getCompose
                   $ requireBlock <^(,)^> declarationBlock
 
+branchAnnotator :: BranchAnnotator CodeLayout
+branchAnnotator = multiBlockLayout
+              <$> groupBranchFields (fst <$> fieldContribution)
+
+
 topLevelContribution :: TopLevelAnnotator (CodeBlock, CodeBlock)
 topLevelContribution = mconcat <$> groupFields fieldContribution
 
-patternOverlay :: TopLevelAnnotator CodeOverlay
-patternOverlay = uncurry CodeOverlay
+topLevelAnnotator :: TopLevelAnnotator CodeOverlay
+topLevelAnnotator = uncurry CodeOverlay
              <$> (singleBlockLayout *** singleBlockLayout)
              <$> topLevelContribution

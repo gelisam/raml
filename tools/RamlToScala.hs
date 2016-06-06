@@ -2,17 +2,16 @@
 import qualified Filesystem.Path.CurrentOS as Path
 import Options.Generic
 
-import Data.Yaml.Ordered.MyExtra
-import Raml.Parser
-import Raml.Normalizer
-import Raml.Classifier
-import Raml.Analyzer
+import Data.IndentedCode
+import Language.Scala.Annotator
+import qualified Language.Scala.Annotator.Pattern as Pattern
+import Language.Scala.Converter
 import Language.Scala.Generator
 import Language.Scala.IncludeTracker
 import Language.Scala.Name
 import Language.Scala.PrettyPrinter
 import Language.Scala.Simplifier
-import Data.IndentedCode
+import Raml
 
 
 data CompilationOptions = CompilationOptions
@@ -31,11 +30,9 @@ compile (CompilationOptions {..}) = do
      <$> prettyPrint
      <$> simplify
      <$> generate
-     <$> analyze
-     <$> classify
-     <$> normalize
-     <$> parse
-     <$> readYaml (Path.encodeString ramlFile)
+     <$> annotate Pattern.topLevelAnnotator Pattern.branchAnnotator
+     <$> convert
+     <$> readRaml (Path.encodeString ramlFile)
     printBlock r
 
 main :: IO ()
