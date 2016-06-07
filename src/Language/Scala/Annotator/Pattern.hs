@@ -129,10 +129,10 @@ topLevelContribution = mconcat <$> groupFields fieldContribution
 -- DataType:
 -- - StringType:
 --   - fields: {}
---   - - []
+--   - []
 --   NumberType:
 --   - fields: {}
---   - - []
+--   - []
 --   DateType:
 --   - fields:
 --       dateFormat:
@@ -146,7 +146,7 @@ topLevelContribution = mconcat <$> groupFields fieldContribution
 --         - )
 --   BooleanType:
 --   - fields: {}
---   - - []
+--   - []
 -- - methods:
 --   - - - require(
 --       - - dateFormat match {
@@ -164,10 +164,8 @@ topLevelContribution = mconcat <$> groupFields fieldContribution
 --     dataType:
 --     - DataType
 --     - []
--- - methods:
---   - - []
---   helpers:
---   - - []
+-- - methods: []
+--   helpers: []
 topLevelAnnotator :: TopLevelAnnotator CodeOverlay
 topLevelAnnotator = uncurry CodeOverlay
                 <$> (singleBlockLayout *** singleBlockLayout)
