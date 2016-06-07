@@ -31,15 +31,12 @@ instance Simplify GeneratedCode where
 -- >>> printAsYaml r
 -- - - - trait:
 --         name: DataType
---         code: []
 --     - case_object:
 --         name: StringType
 --         parent: DataType
---         code: []
 --     - case_object:
 --         name: NumberType
 --         parent: DataType
---         code: []
 --     - case_class:
 --         name: DateType
 --         parent: DataType
@@ -47,11 +44,9 @@ instance Simplify GeneratedCode where
 --         - field:
 --             name: dateFormat
 --             type: String
---         code: []
 --     - case_object:
 --         name: BooleanType
 --         parent: DataType
---         code: []
 -- - - - case_class:
 --         name: Field
 --         fields:
@@ -61,6 +56,5 @@ instance Simplify GeneratedCode where
 --         - field:
 --             name: dataType
 --             type: DataType
---         code: []
 instance Simplify GeneratedTree where
   simplify = GeneratedTree . simplify . unGeneratedTree

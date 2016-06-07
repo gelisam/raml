@@ -63,7 +63,7 @@ newtype GeneratedTree = GeneratedTree
 instance ToJSON Trait where
   toJSON (Trait {..}) =
     object [ "trait" .=! object [ "name" .=! traitName
-                                , "code" .=! traitCode
+                                , "code" .=? traitCode
                                 ]
            ]
 
@@ -71,7 +71,7 @@ instance ToJSON CaseObject where
   toJSON (CaseObject {..}) =
     object [ "case_object" .=! object [ "name"   .=! caseObjectName
                                       , "parent" .=? caseObjectParent
-                                      , "code"   .=! caseObjectCode
+                                      , "code"   .=? caseObjectCode
                                       ]
            ]
 
@@ -87,14 +87,14 @@ instance ToJSON CaseClass where
     object [ "case_class" .=! object [ "name"   .=! caseClassName
                                      , "parent" .=? caseClassParent
                                      , "fields" .=? caseClassFields
-                                     , "code"   .=! caseClassCode
+                                     , "code"   .=? caseClassCode
                                      ]
            ]
 
 instance ToJSON CompanionObject where
   toJSON (CompanionObject {..}) =
     object [ "companion_object" .=! object [ "name" .=! companionName
-                                           , "code" .=! companionCode
+                                           , "code" .=? companionCode
                                            ]
            ]
 
@@ -179,15 +179,12 @@ generateTopLevel typeName (TopLevelSum (sumProps, CodeOverlay {..})) =
 -- >>> printAsYaml r
 -- - - - trait:
 --         name: DataType
---         code: []
 --     - case_class:
 --         name: StringType
 --         parent: DataType
---         code: []
 --     - case_class:
 --         name: NumberType
 --         parent: DataType
---         code: []
 --     - case_class:
 --         name: DateType
 --         parent: DataType
@@ -195,14 +192,11 @@ generateTopLevel typeName (TopLevelSum (sumProps, CodeOverlay {..})) =
 --         - field:
 --             name: dateFormat
 --             type: String
---         code: []
 --     - case_class:
 --         name: BooleanType
 --         parent: DataType
---         code: []
 --   - - companion_object:
 --         name: DataType
---         code: []
 -- - - - case_class:
 --         name: Field
 --         fields:
@@ -212,10 +206,8 @@ generateTopLevel typeName (TopLevelSum (sumProps, CodeOverlay {..})) =
 --         - field:
 --             name: dataType
 --             type: DataType
---         code: []
 --   - - companion_object:
 --         name: Field
---         code: []
 generate :: OverlaidTree -> GeneratedTree
 generate = GeneratedTree
          . map (uncurry generateTopLevel)
