@@ -105,10 +105,12 @@ newtype CodeBlock = CodeBlock
   { runCodeBlock :: [CodeChunk]
   } deriving (Show, Eq, Empty, Monoid, ToJSON)
 
+-- invariant: none of the blocks are empty
 newtype CodeGroup = CodeGroup
   { runCodeGroup :: [CodeBlock]
   } deriving (Show, Eq, Empty, Monoid, ToJSON)
 
+-- invariant: none of the groups are empty
 newtype CodeLayout = CodeLayout
   { runCodeLayout :: [CodeGroup]
   } deriving (Show, Eq, Empty, Monoid, ToJSON)
@@ -128,10 +130,10 @@ multiLineBlock = CodeBlock
 
 
 singleBlockGroup :: CodeBlock -> CodeGroup
-singleBlockGroup = CodeGroup . return
+singleBlockGroup = multiBlockGroup . return
 
 multiBlockGroup :: [CodeBlock] -> CodeGroup
-multiBlockGroup = CodeGroup
+multiBlockGroup = CodeGroup . filter (not . null)
 
 singleLineGroup :: String -> CodeGroup
 singleLineGroup = singleBlockGroup . singleLineBlock
@@ -141,10 +143,10 @@ multiLineGroup = singleBlockGroup . multiLineBlock
 
 
 singleGroupLayout :: CodeGroup -> CodeLayout
-singleGroupLayout = CodeLayout . return
+singleGroupLayout = multiGroupLayout . return
 
 multiGroupLayout :: [CodeGroup] -> CodeLayout
-multiGroupLayout = CodeLayout
+multiGroupLayout = CodeLayout . filter (not . null)
 
 singleBlockLayout :: CodeBlock -> CodeLayout
 singleBlockLayout = singleGroupLayout . singleBlockGroup
@@ -162,14 +164,12 @@ multiLineLayout = singleGroupLayout . multiLineGroup
 flattenGroup :: CodeGroup -> CodeBlock
 flattenGroup = CodeBlock
              . intercalate [Line ""]
-             . filter (not . null)
              . map runCodeBlock
              . runCodeGroup
 
 flattenLayout :: CodeLayout -> CodeBlock
 flattenLayout = CodeBlock
               . intercalate [Line "", Line ""]
-              . filter (not . null)
               . map (runCodeBlock . flattenGroup)
               . runCodeLayout
 
